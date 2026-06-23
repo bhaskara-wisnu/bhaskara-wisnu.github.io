@@ -25,8 +25,8 @@
             filter: drop-shadow(0 25px 25px rgb(0 0 0 / 0.15));
         }
 
-        /* Lebar optimal chart disesuaikan untuk 10 kolom */
-        #retailChartContainer, #foreignChartContainer, #weeklyForeignChartContainer { max-width: 2000px; }
+        /* Lebar optimal chart disesuaikan untuk 9 kolom */
+        #retailChartContainer, #foreignChartContainer, #weeklyForeignChartContainer { max-width: 1900px; }
 
         svg {
             width: 100%;
@@ -59,124 +59,124 @@
         // 1. DATA MENTAH (TERSTRUKTUR ULANG PRESISI)
         // ==========================================
         
-        // --- DATA RETAIL (08 Jun - 22 Jun, 10 Hari) ---
+        // --- DATA RETAIL (08 Jun - 19 Jun, 9 Hari) ---
         const RETAIL_RAW = `
-| Buy 1 | BBCA | 4928 | BBCA | 5004 | BBRI | 2845 | BBRI | 2856 | BBRI | 2871 | DSSA | 857 | TPIA | 2044 | BMRI | 4404 | BMRI | 4347 | DSSA | 851 |
-| Buy 2 | BBRI | 2652 | BBRI | 2683 | BBNI | 3479 | TPIA | 1747 | BMRI | 4273 | BUMI | 177 | TLKM | 2981 | BBRI | 2987 | BBRI | 2945 | BBRI | 2902 |
-| Buy 3 | TLKM | 2460 | BMRI | 3839 | TPIA | 1930 | EMAS | 6771 | EMAS | 6976 | ANTM | 3111 | BRMS | 683 | TLKM | 2732 | TLKM | 2607 | TPIA | 1982 |
-| Buy 4 | ANTM | 2619 | AMMN | 3314 | ANTM | 2874 | TINS | 3201 | BBNI | 3601 | DEWA | 374 | EMAS | 6937 | DSSA | 753 | AMMN | 3839 | ANTM | 2955 |
-| Buy 5 | MDKA | 2463 | SUPA | 568 | BUMI | 150 | BRPT | 1712 | ICBP | 6320 | ASII | 4917 | ASII | 4836 | TPIA | 2029 | DSSA | 832 | BBNI | 3567 |
-| Buy 6 | IMPC | 1380 | ITMG | 21867 | EMAS | 7133 | TLKM | 2907 | IMPC | 1696 | EMAS | 7085 | BREN | 3860 | CUAN | 692 | TPIA | 2093 | BUMI | 164 |
-| Buy 7 | INDF | 5926 | EMAS | 7198 | CUAN | 779 | AMMN | 3136 | KLBF | 739 | PSAB | 473 | DSSA | 783 | EMAS | 7101 | NCKL | 869 | BMRI | 4260 |
-| Buy 8 | BBNI | 3082 | CUAN | 682 | DEWA | 300 | MBMA | 456 | JSMR | 2621 | KLBF | 751 | BBNI | 3762 | MAPI | 1508 | ASII | 4807 | AMMN | 3832 |
-| Buy 9 | INCO | 4355 | MDKA | 2517 | BRMS | 521 | BMRI | 4235 | PSAB | 468 | BRMS | 624 | CUAN | 720 | ISAT | 1776 | BRPT | 1731 | INCO | 5239 |
-| Buy 10 | EMAS | 7051 | TLKM | 2571 | BIPI | 154 | ITMG | 22282 | MBMA | 475 | BBCA | 6286 | DEWA | 368 | INCO | 5084 | AADI | 7910 | BRPT | 1638 |
-| Buy 11 | UNTR | 20912 | MBMA | 445 | BBCA | 5424 | ICBP | 6265 | TPIA | 1883 | ADMR | 1645 | BNBR | 117 | ANTM | 3141 | EMAS | 7539 | EMAS | 7143 |
-| Buy 12 | ITMG | 21762 | DSSA | 640 | TINS | 3381 | TAPG | 1392 | UNVR | 1657 | BIPI | 170 | MEDC | 1184 | AMRT | 1403 | UNTR | 22681 | AADI | 8061 |
-| Buy 13 | MBMA | 442 | AADI | 7722 | INKP | 7899 | PTBA | 2683 | SMGR | 1553 | AMRT | 1391 | KLBF | 728 | BUMI | 169 | BUMI | 171 | ASII | 4777 |
-| Buy 14 | SINI | 8581 | BULL | 287 | BRIS | 1866 | BRMS | 483 | AALI | 6214 | BBNI | 3769 | BUVA | 860 | NCKL | 920 | ANTM | 3100 | PTRO | 4146 |
-| Buy 15 | PGAS | 1422 | ADMR | 1504 | MAPI | 1493 | MDKA | 2520 | LSIP | 1246 | AADI | 8439 | PWON | 261 | ITMG | 22364 | CPIN | 3323 | MDKA | 2960 |
-| Buy 16 | TINS | 3019 | TKIM | 4947 | ENRG | 1378 | BULL | 325 | ASPR | 199 | AALI | 6221 | ITMG | 22761 | ADRO | 2282 | DEWA | 375 | KLBF | 682 |
-| Buy 17 | INKP | 6556 | INKP | 7003 | BUVA | 765 | INCO | 4325 | BWPT | 76 | ESSA | 620 | CDIA | 707 | BBCA | 6156 | ADRO | 2234 | PWON | 250 |
-| Buy 18 | BRMS | 480 | AKRA | 1207 | DSSA | 766 | INKP | 7599 | ESSA | 604 | NCKL | 922 | PTBA | 2606 | INDY | 2296 | TKIM | 6003 | BRMS | 637 |
-| Sell 18 | CBDK | 3122 | PGAS | 1441 | ARTO | 984 | RAJA | 3705 | BULL | 367 | GGRM | 15678 | ARKO | 5810 | MARK | 893 | PANI | 6645 | BSML | 474 |
-| Sell 17 | PSAB | 522 | CYBR | 519 | ESSA | 618 | EXCL | 2573 | PTBA | 2603 | CBDK | 3884 | AMRT | 1411 | HMSP | 599 | BBTN | 1230 | BREN | 3702 |
-| Sell 16 | ARCI | 950 | BIPI | 137 | ARKO | 4666 | SMRA | 285 | INCO | 4698 | BRIS | 1898 | BUKA | 103 | BIPI | 154 | BNGA | 1607 | WBSA | 759 |
-| Sell 15 | BNBR | 87 | HRTA | 2031 | BREN | 4175 | BIPI | 144 | AMRT | 1373 | INDF | 6597 | EXCL | 2581 | MSIN | 598 | MDKA | 3016 | BIPI | 152 |
-| Sell 14 | DEWA | 251 | MAPI | 1491 | ULTJ | 1287 | HMSP | 607 | INDF | 6531 | BREN | 4322 | INDF | 6775 | MEDC | 1164 | CYBR | 651 | UNVR | 1687 |
-| Sell 13 | BRPT | 1424 | PSAB | 541 | PANI | 6192 | AADI | 8070 | ASII | 4775 | HRTA | 2172 | SMGR | 1591 | BUVA | 834 | BULL | 386 | AMRT | 1401 |
-| Sell 12 | RAJA | 2705 | INTP | 4014 | ARCI | 983 | ADMR | 1477 | BREN | 4178 | MDKA | 2712 | ENRG | 1435 | CPIN | 3341 | LSIP | 1314 | MORA | 8514 |
-| Sell 11 | DMAS | 144 | EXCL | 2467 | RAJA | 3617 | PTRO | 4058 | BRMS | 532 | ENRG | 1446 | TOWR | 391 | ASII | 4760 | UVCR | 187 | MBMA | 517 |
-| Sell 10 | JSMR | 2701 | JPFA | 1863 | JSMR | 2756 | DSSA | 734 | ITMG | 23326 | UNVR | 1646 | UNTR | 22916 | ICBP | 6583 | JSMR | 2579 | ITMG | 22514 |
-| Sell 9 | ASPR | 149 | TPIA | 1741 | UNTR | 21892 | BUVA | 729 | TOWR | 342 | TINS | 3512 | ESSA | 650 | TINS | 3597 | PGEO | 897 | GGRM | 17014 |
-| Sell 8 | BIPI | 130 | ENRG | 1296 | WBSA | 713 | ENRG | 1416 | MDKA | 2594 | DMAS | 155 | BRPT | 1721 | JPFA | 1948 | MAPI | 1510 | BULL | 381 |
-| Sell 7 | AMRT | 1337 | DEWA | 273 | AMMN | 3260 | PTRO | 3863 | UNVR | 1598 | AMRT | 1343 | UNTR | 22464 | INDY | 2406 | DATA | 2182 | DEWA | 368 | BBCA | 6220 |
-| Sell 6 | ADRO | 2213 | ICBP | 6537 | SSIA | 1443 | BBNI | 3190 | AMRT | 1367 | KLBF | 718 | ANTM | 2842 | TLKM | 2942 | TINS | 3508 | KLBF | 710 | ISAT | 1723 |
-| Sell 5 | DSSA | 632 | MEDC | 1206 | MAPI | 1492 | BRPT | 1510 | MDKA | 2704 | MAPI | 1491 | CUAN | 704 | TOWR | 380 | MDKA | 2735 | AADI | 8073 | SMGR | 1465 |
-| Sell 4 | ANTM | 2631 | BUMI | 143 | ADRO | 2166 | TINS | 3156 | BRPT | 1805 | MEDC | 1238 | BUMI | 156 | BUVA | 879 | AMMN | 3782 | ESSA | 673 | BUKA | 103 |
-| Sell 3 | AADI | 8112 | BUMI | 143 | AMMN | 3474 | ADMR | 1420 | BUVA | 638 | TLKM | 2682 | AMMN | 3367 | BBRI | 2973 | ANTM | 3188 | BRPT | 1710 | UNVR | 1656 |
-| Sell 2 | BREN | 3987 | BUMI | 151 | AMMN | 3229 | AADI | 7590 | BUMI | 133 | ASII | 4564 | BMRI | 4188 | DSSA | 803 | TPIA | 2049 | BBCA | 6402 | MDKA | 2830 | ICBP | 6677 |
-| Sell 1 | BBCA | 5390 | TINS | 3199 | TPIA | 1477 | ANTM | 2773 | ASII | 4630 | BBCA | 5731 | BBCA | 6013 | BMRI | 4416 | BBRI | 3066 | AMMN | 3858 | MYOR | 1975 |
+| Buy 1 | BBCA | 4928 | BBCA | 5004 | BBRI | 2845 | BBRI | 2856 | BBRI | 2871 | DSSA | 857 | TPIA | 2044 | BMRI | 4404 | BMRI | 4347 |
+| Buy 2 | BBRI | 2652 | BBRI | 2683 | BBNI | 3479 | TPIA | 1747 | BMRI | 4273 | BUMI | 177 | TLKM | 2981 | BBRI | 2987 | BBRI | 2945 |
+| Buy 3 | TLKM | 2460 | BMRI | 3839 | TPIA | 1930 | EMAS | 6771 | EMAS | 6976 | ANTM | 3111 | BRMS | 683 | TLKM | 2732 | TLKM | 2607 |
+| Buy 4 | ANTM | 2619 | AMMN | 3314 | ANTM | 2874 | TINS | 3201 | BBNI | 3601 | DEWA | 374 | EMAS | 6937 | DSSA | 753 | AMMN | 3839 |
+| Buy 5 | MDKA | 2463 | SUPA | 568 | BUMI | 150 | BRPT | 1712 | ICBP | 6320 | ASII | 4917 | ASII | 4836 | TPIA | 2029 | DSSA | 832 |
+| Buy 6 | IMPC | 1380 | ITMG | 21867 | EMAS | 7133 | TLKM | 2907 | IMPC | 1696 | EMAS | 7085 | BREN | 3860 | CUAN | 692 | TPIA | 2093 |
+| Buy 7 | INDF | 5926 | EMAS | 7198 | CUAN | 779 | AMMN | 3136 | KLBF | 739 | PSAB | 473 | DSSA | 783 | EMAS | 7101 | NCKL | 869 |
+| Buy 8 | BBNI | 3082 | CUAN | 682 | DEWA | 300 | MBMA | 456 | JSMR | 2621 | KLBF | 751 | BBNI | 3762 | MAPI | 1508 | ASII | 4807 |
+| Buy 9 | INCO | 4355 | MDKA | 2517 | BRMS | 521 | BMRI | 4235 | PSAB | 468 | BRMS | 624 | CUAN | 720 | ISAT | 1776 | BRPT | 1731 |
+| Buy 10 | EMAS | 7051 | TLKM | 2571 | BIPI | 154 | ITMG | 22282 | MBMA | 475 | BBCA | 6286 | DEWA | 368 | INCO | 5084 | AADI | 7910 |
+| Buy 11 | UNTR | 20912 | MBMA | 445 | BBCA | 5424 | ICBP | 6265 | TPIA | 1883 | ADMR | 1645 | BNBR | 117 | ANTM | 3141 | EMAS | 7539 |
+| Buy 12 | ITMG | 21762 | DSSA | 640 | TINS | 3381 | TAPG | 1392 | UNVR | 1657 | BIPI | 170 | MEDC | 1184 | AMRT | 1403 | UNTR | 22681 |
+| Buy 13 | MBMA | 442 | AADI | 7722 | INKP | 7899 | PTBA | 2683 | SMGR | 1553 | AMRT | 1391 | KLBF | 728 | BUMI | 169 | BUMI | 171 |
+| Buy 14 | SINI | 8581 | BULL | 287 | BRIS | 1866 | BRMS | 483 | AALI | 6214 | BBNI | 3769 | BUVA | 860 | NCKL | 920 | ANTM | 3100 |
+| Buy 15 | PGAS | 1422 | ADMR | 1504 | MAPI | 1493 | MDKA | 2520 | LSIP | 1246 | AADI | 8439 | PWON | 261 | ITMG | 22364 | CPIN | 3323 |
+| Buy 16 | TINS | 3019 | TKIM | 4947 | ENRG | 1378 | BULL | 325 | ASPR | 199 | AALI | 6221 | ITMG | 22761 | ADRO | 2282 | DEWA | 375 |
+| Buy 17 | INKP | 6556 | INKP | 7003 | BUVA | 765 | INCO | 4325 | BWPT | 76 | ESSA | 620 | CDIA | 707 | BBCA | 6156 | ADRO | 2234 |
+| Buy 18 | BRMS | 480 | AKRA | 1207 | DSSA | 766 | INKP | 7599 | ESSA | 604 | NCKL | 922 | PTBA | 2606 | INDY | 2296 | TKIM | 6003 |
+| Sell 18 | CBDK | 3122 | PGAS | 1441 | ARTO | 984 | RAJA | 3705 | BULL | 367 | GGRM | 15678 | ARKO | 5810 | MARK | 893 | PANI | 6645 |
+| Sell 17 | PSAB | 522 | CYBR | 519 | ESSA | 618 | EXCL | 2573 | PTBA | 2603 | CBDK | 3884 | AMRT | 1411 | HMSP | 599 | BBTN | 1230 |
+| Sell 16 | ARCI | 950 | BIPI | 137 | ARKO | 4666 | SMRA | 285 | INCO | 4698 | BRIS | 1898 | BUKA | 103 | BIPI | 154 | BNGA | 1607 |
+| Sell 15 | BNBR | 87 | HRTA | 2031 | BREN | 4175 | BIPI | 144 | AMRT | 1373 | INDF | 6597 | EXCL | 2581 | MSIN | 598 | MDKA | 3016 |
+| Sell 14 | DEWA | 251 | MAPI | 1491 | ULTJ | 1287 | HMSP | 607 | INDF | 6531 | BREN | 4322 | INDF | 6775 | MEDC | 1164 | CYBR | 651 |
+| Sell 13 | BRPT | 1424 | PSAB | 541 | PANI | 6192 | AADI | 8070 | ASII | 4775 | HRTA | 2172 | SMGR | 1591 | BUVA | 834 | BULL | 386 |
+| Sell 12 | RAJA | 2705 | INTP | 4014 | ARCI | 983 | ADMR | 1477 | BREN | 4178 | MDKA | 2712 | ENRG | 1435 | CPIN | 3341 | LSIP | 1314 |
+| Sell 11 | DMAS | 144 | EXCL | 2467 | RAJA | 3617 | PTRO | 4058 | BRMS | 532 | ENRG | 1446 | TOWR | 391 | ASII | 4760 | UVCR | 187 |
+| Sell 10 | JSMR | 2701 | JPFA | 1863 | JSMR | 2756 | DSSA | 734 | ITMG | 23326 | UNVR | 1646 | UNTR | 22916 | ICBP | 6583 | JSMR | 2579 |
+| Sell 9 | ASPR | 149 | TPIA | 1741 | UNTR | 21892 | BUVA | 729 | TOWR | 342 | TINS | 3512 | ESSA | 650 | TINS | 3597 | PGEO | 897 |
+| Sell 8 | BIPI | 130 | ENRG | 1296 | WBSA | 713 | ENRG | 1416 | MDKA | 2594 | DMAS | 155 | BRPT | 1721 | JPFA | 1948 | MAPI | 1510 |
+| Sell 7 | AMMN | 3260 | PTRO | 3863 | UNVR | 1598 | AMRT | 1343 | UNTR | 22464 | INDY | 2406 | DATA | 2182 | DEWA | 368 | BBCA | 6220 |
+| Sell 6 | SSIA | 1443 | BBNI | 3190 | AMRT | 1367 | KLBF | 718 | ANTM | 2842 | TLKM | 2942 | TINS | 3508 | KLBF | 710 | ISAT | 1723 |
+| Sell 5 | MAPI | 1492 | BRPT | 1510 | MDKA | 2704 | MAPI | 1491 | CUAN | 704 | TOWR | 380 | MDKA | 2735 | AADI | 8073 | SMGR | 1465 |
+| Sell 4 | ADRO | 2166 | TINS | 3156 | BRPT | 1805 | MEDC | 1238 | BUMI | 156 | BUVA | 879 | AMMN | 3782 | ESSA | 673 | BUKA | 103 |
+| Sell 3 | ADMR | 1420 | BUVA | 638 | TLKM | 2682 | ANTM | 2715 | AMMN | 3367 | BBRI | 2973 | ANTM | 3188 | BRPT | 1710 | UNVR | 1656 |
+| Sell 2 | BUMI | 133 | ASII | 4564 | BMRI | 4188 | BBNI | 3509 | DSSA | 803 | TPIA | 2049 | BBCA | 6402 | MDKA | 2830 | ICBP | 6677 |
+| Sell 1 | TPIA | 1477 | ANTM | 2773 | ASII | 4630 | BBCA | 5731 | BBCA | 6013 | BMRI | 4416 | BBRI | 3066 | AMMN | 3858 | MYOR | 1975 |
 `;
 
-        // --- DATA FOREIGN (08 Jun - 22 Jun, 10 Hari) ---
+        // --- DATA FOREIGN (08 Jun - 19 Jun, 9 Hari) ---
         const FOREIGN_RAW = `
-| Top Buy | 1 | BMRI | 3771 | BBNI | 3227 | TLKM | 2706 | BBCA | 5754 | BBCA | 6010 | BMRI | 4434 | BBRI | 3063 | AMMN | 3941 | BBCA | 6266 | BBCA | 6224 |
-| Top Buy | 2 | TPIA | 1478 | TLKM | 2565 | BRPT | 1809 | BBNI | 3517 | TPIA | 1888 | TPIA | 2048 | BBCA | 6392 | BBCA | 6148 | MYOR | 1958 | TINS | 3687 |
-| Top Buy | 3 | ASII | 4414 | ANTM | 2772 | DSSA | 767 | TLKM | 2910 | AMMN | 3369 | BBRI | 2974 | ANTM | 3185 | BRPT | 1716 | UNVR | 1674 | PTBA | 2583 |
-| Top Buy | 4 | BUMI | 133 | TINS | 3161 | BBNI | 3472 | BMRI | 4236 | ANTM | 2848 | CUAN | 768 | BMRI | 4471 | KLBF | 711 | GOTO | 50 | BREN | 3712 |
-| Top Buy | 5 | BRPT | 1419 | BUVA | 647 | MDKA | 2710 | ANTM | 2715 | TLKM | 2916 | TLKM | 2939 | MAPI | 1497 | UNTR | 22674 | ICBP | 6693 | ADRO | 2279 |
-| Top Buy | 6 | DEWA | 253 | CPIN | 3248 | ASII | 4631 | BREN | 4054 | BRMS | 528 | BBCA | 6275 | MDKA | 2733 | CUAN | 691 | MDKA | 3001 | GGRM | 17002 |
-| Top Buy | 7 | BIPI | 130 | BUMI | 138 | TOWR | 326 | AADI | 8062 | CUAN | 711 | AKRA | 1233 | TINS | 3507 | TINS | 3585 | BUKA | 105 | GOTO | 50 |
-| Top Buy | 8 | ESSA | 562 | PTRO | 3818 | PWON | 248 | ISAT | 1874 | DSSA | 808 | MDKA | 2711 | AMMN | 3776 | GOTO | 50 | ISAT | 1726 | CUAN | 659 |
-| Top Buy | 9 | BUVA | 574 | PGAS | 1439 | GOTO | 50 | BUMI | 141 | MDKA | 2590 | BRPT | 1808 | UNTR | 22924 | JPFA | 1953 | PGEO | 899 | JSMR | 2754 |
-| Top Buy | 10 | BBNI | 3076 | INCO | 4564 | PGAS | 1497 | BUVA | 729 | BUMI | 154 | DMAS | 155 | ENRG | 1441 | BIPI | 154 | CYBR | 651 | ITMG | 22540 |
-| Top Buy | 11 | PACK | 204 | PWON | 245 | BREN | 4179 | ARCI | 872 | UNTR | 22461 | TOWR | 379 | HRTA | 2232 | PTRO | 4249 | MORA | 7434 | MDKA | 2954 |
-| Top Buy | 12 | WIFI | 1377 | CDIA | 635 | PANI | 6200 | ESSA | 601 | INDF | 6525 | PTRO | 4526 | ADRO | 2322 | DEWA | 368 | CMRY | 4359 | RAJA | 3761 |
-| Top Buy | 13 | PGAS | 1428 | RAJA | 2920 | EMTK | 540 | PSAB | 544 | DEWA | 320 | MAPI | 1483 | EXCL | 2581 | ANTM | 3150 | PACK | 260 | NCKL | 875 |
-| Top Buy | 14 | BULL | 282 | JPFA | 1866 | UNTR | 21920 | SSIA | 1523 | ITMG | 23338 | BRIS | 1899 | BRPT | 1715 | BUVA | 839 | KETR | 562 | BULL | 381 |
-| Top Buy | 15 | MAPI | 1491 | TOWR | 321 | MEDC | 1199 | EXCL | 2578 | ASII | 4774 | SSIA | 1646 | BIRD | 1599 | INCO | 5065 | INET | 208 | ERAA | 371 |
-| Top Buy | 16 | PANI | 5648 | GOTO | 50 | WIFI | 1558 | ADMR | 1477 | BBNI | 3597 | UNVR | 1649 | TCPI | 9280 | RAJA | 3798 | GULA | 604 | AMRT | 1401 |
-| Top Buy | 17 | MINA | 246 | BRPT | 1513 | GGRM | 15050 | FILM | 1800 | PTBA | 2610 | MARK | 870 | SMGR | 1592 | PANI | 6706 | BRIS | 1835 | INTP | 3975 |
-| Top Buy | 18 | ARCI | 951 | ASII | 4563 | CMRY | 4196 | BBTN | 1195 | INCO | 4672 | BREN | 4317 | ARCI | 1125 | HMSP | 599 | AYAM | 348 | MORA | 8719 |
-| Top Sell | 18 | HRTA | 1999 | DEWA | 265 | BUVA | 767 | ENRG | 1373 | AKRA | 1264 | INKP | 7683 | MEDC | 1209 | MEDC | 1179 | AMRT | 1353 | BRMS | 637 |
-| Top Sell | 17 | PSAB | 518 | MEDC | 1187 | ENRG | 1373 | MAPI | 1492 | INCO | 4306 | AKRA | 1275 | IMPC | 1764 | DSNG | 1137 | TKIM | 5980 | PWON | 250 |
-| Top Sell | 16 | CUAN | 648 | NCKL | 802 | MAPI | 1492 | HRTA | 1850 | SMGR | 1552 | PTBA | 2648 | BUVA | 861 | CTRA | 570 | ADRO | 2222 | UNTR | 22445 |
-| Top Sell | 15 | PGEO | 790 | AKRA | 1206 | ITMG | 22029 | PTBA | 2696 | JSMR | 2620 | BRMS | 629 | CUAN | 722 | CPIN | 3344 | INKP | 7478 | DEWA | 356 |
-| Top Sell | 14 | AKRA | 1181 | MDKA | 2516 | AMMN | 3403 | BULL | 325 | UNVR | 1655 | JPFA | 1929 | BNBR | 117 | MEDC | 1166 | UNTR | 22691 | AADI | 8073 |
-| Top Sell | 13 | CMRY | 4129 | INKP | 6936 | INKP | 7812 | CUAN | 685 | AALI | 6184 | ADMR | 1638 | BUMI | 172 | MBMA | 525 | BUMI | 172 | KLBF | 682 |
-| Top Sell | 12 | AADI | 7406 | AADI | 7678 | ADRO | 2263 | MBMA | 457 | KLBF | 738 | EMAS | 7105 | PTRO | 4353 | ISAT | 1782 | DEWA | 376 | ASII | 4756 |
-| Top Sell | 11 | BREN | 3462 | AADI | 7985 | ADRO | 2256 | BREN | 3462 | MAPI | 1490 | PTRO | 4379 | BRMS | 482 | PGAS | 1542 | ANTM | 3096 | BRPT | 1634 |
-| Top Sell | 10 | MBMA | 439 | BREN | 3884 | DEWA | 298 | ICBP | 6251 | IMPC | 1680 | ITMG | 23547 | AADI | 8160 | TPIA | 2026 | BRPT | 1724 | BUMI | 164 |
-| Top Sell | 9 | ITMG | 21776 | MBMA | 446 | BIPI | 154 | MAPI | 1489 | ENRG | 1412 | BBNI | 3777 | ESSA | 651 | DSSA | 754 | ASII | 4809 | EMAS | 7136 |
-| Top Sell | 8 | AMMN | 3222 | ADMR | 1491 | BRMS | 514 | ITMG | 22306 | BRPT | 1720 | AADI | 8435 | DEWA | 368 | AMRT | 1400 | AADI | 7880 | TLKM | 2520 |
-| Top Sell | 7 | INDF | 5928 | ITMG | 21869 | BMRI | 4182 | TPIA | 1745 | LSIP | 1240 | AMMN | 3867 | KLBF | 729 | BUMI | 169 | NCKL | 866 | BMRI | 4260 |
-| Top Sell | 6 | MDKA | 2468 | CUAN | 679 | CUAN | 783 | AMMN | 3119 | PSAB | 468 | ANTM | 3109 | BBNI | 3759 | ESSA | 676 | TPIA | 2091 | AMMN | 3829 |
-| Top Sell | 5 | IMPC | 1398 | BBRI | 2670 | ANTM | 2875 | TINS | 3196 | AADI | 8623 | INCO | 5212 | DSSA | 782 | BBNI | 3697 | BBRI | 2938 | BBNI | 3558 |
-| Top Sell | 4 | ANTM | 2611 | AMMN | 3305 | BUMI | 149 | BRPT | 1713 | ICBP | 6327 | DEWA | 374 | ASII | 4835 | BMRI | 4416 | TLKM | 2596 | ANTM | 2951 |
-| Top Sell | 3 | TLKM | 2429 | TPIA | 1733 | TPIA | 1952 | EMAS | 6757 | EMAS | 6965 | ASII | 4915 | BRMS | 684 | TLKM | 2729 | BMRI | 4329 | TPIA | 1986 |
-| Top Sell | 2 | BBRI | 2640 | BMRI | 3875 | BBCA | 5440 | BBRI | 2855 | BMRI | 4272 | BUMI | 176 | TLKM | 2977 | BBRI | 2983 | AMMN | 3826 | DSSA | 847 |
-| Top Sell | 1 | BBCA | 4920 | BBCA | 4996 | BBRI | 2848 | DSSA | 739 | BBRI | 2870 | DSSA | 862 | TPIA | 2051 | MAPI | 1506 | DSSA | 841 | BBRI | 2903 |
+| Top Buy | 1 | BMRI | 3771 | BBNI | 3227 | TLKM | 2706 | BBCA | 5754 | BBCA | 6010 | BMRI | 4434 | BBRI | 3063 | AMMN | 3941 | BBCA | 6266 |
+| Top Buy | 2 | TPIA | 1478 | TLKM | 2565 | BRPT | 1809 | BBNI | 3517 | TPIA | 1888 | TPIA | 2048 | BBCA | 6392 | BBCA | 6148 | MYOR | 1958 |
+| Top Buy | 3 | ASII | 4414 | ANTM | 2772 | DSSA | 767 | TLKM | 2910 | AMMN | 3369 | BBRI | 2974 | ANTM | 3185 | BRPT | 1716 | UNVR | 1674 |
+| Top Buy | 4 | BUMI | 133 | TINS | 3161 | BBNI | 3472 | BMRI | 4236 | ANTM | 2848 | CUAN | 768 | BMRI | 4471 | KLBF | 711 | GOTO | 50 |
+| Top Buy | 5 | BRPT | 1419 | BUVA | 647 | MDKA | 2710 | ANTM | 2715 | TLKM | 2916 | TLKM | 2939 | MAPI | 1497 | UNTR | 22674 | ICBP | 6693 |
+| Top Buy | 6 | DEWA | 253 | CPIN | 3248 | ASII | 4631 | BREN | 4054 | BRMS | 528 | BBCA | 6275 | MDKA | 2733 | CUAN | 691 | MDKA | 3001 |
+| Top Buy | 7 | BIPI | 130 | BUMI | 138 | TOWR | 326 | AADI | 8062 | CUAN | 711 | AKRA | 1233 | TINS | 3507 | TINS | 3585 | BUKA | 105 |
+| Top Buy | 8 | ESSA | 562 | PTRO | 3818 | PWON | 248 | ISAT | 1874 | DSSA | 808 | MDKA | 2711 | AMMN | 3776 | GOTO | 50 | ISAT | 1726 |
+| Top Buy | 9 | BUVA | 574 | PGAS | 1439 | GOTO | 50 | BUMI | 141 | MDKA | 2590 | BRPT | 1808 | UNTR | 22924 | JPFA | 1953 | PGEO | 899 |
+| Top Buy | 10 | BBNI | 3076 | INCO | 4564 | PGAS | 1497 | BUVA | 729 | BUMI | 154 | DMAS | 155 | ENRG | 1441 | BIPI | 154 | CYBR | 651 |
+| Top Buy | 11 | PACK | 204 | PWON | 245 | BREN | 4179 | ARCI | 872 | UNTR | 22461 | TOWR | 379 | HRTA | 2232 | PTRO | 4249 | MORA | 7434 |
+| Top Buy | 12 | WIFI | 1377 | CDIA | 635 | PANI | 6200 | ESSA | 601 | INDF | 6525 | PTRO | 4526 | ADRO | 2322 | DEWA | 368 | CMRY | 4359 |
+| Top Buy | 13 | PGAS | 1428 | RAJA | 2920 | EMTK | 540 | PSAB | 544 | DEWA | 320 | MAPI | 1483 | EXCL | 2581 | ANTM | 3150 | PACK | 260 |
+| Top Buy | 14 | BULL | 282 | JPFA | 1866 | UNTR | 21920 | SSIA | 1523 | ITMG | 23338 | BRIS | 1899 | BRPT | 1715 | BUVA | 839 | KETR | 562 |
+| Top Buy | 15 | MAPI | 1491 | TOWR | 321 | MEDC | 1199 | EXCL | 2578 | ASII | 4774 | SSIA | 1646 | BIRD | 1599 | INCO | 5065 | INET | 208 |
+| Top Buy | 16 | PANI | 5648 | GOTO | 50 | WIFI | 1558 | ADMR | 1477 | BBNI | 3597 | UNVR | 1649 | TCPI | 9280 | RAJA | 3798 | GULA | 604 |
+| Top Buy | 17 | MINA | 246 | BRPT | 1513 | GGRM | 15050 | FILM | 1800 | PTBA | 2610 | MARK | 870 | SMGR | 1592 | PANI | 6706 | BRIS | 1835 |
+| Top Buy | 18 | ARCI | 951 | ASII | 4563 | CMRY | 4196 | BBTN | 1195 | INCO | 4672 | BREN | 4317 | ARCI | 1125 | HMSP | 599 | AYAM | 348 |
+| Top Sell | 18 | HRTA | 1999 | DEWA | 265 | BUVA | 767 | ENRG | 1373 | AKRA | 1264 | INKP | 7683 | MEDC | 1209 | MEDC | 1179 | AMRT | 1353 |
+| Top Sell | 17 | PSAB | 518 | MEDC | 1187 | ENRG | 1373 | MAPI | 1492 | INCO | 4306 | AKRA | 1275 | IMPC | 1764 | DSNG | 1137 | TKIM | 5980 |
+| Top Sell | 16 | CUAN | 648 | NCKL | 802 | MAPI | 1492 | HRTA | 1850 | SMGR | 1552 | PTBA | 2648 | BUVA | 861 | CTRA | 570 | ADRO | 2222 |
+| Top Sell | 15 | PGEO | 790 | AKRA | 1206 | ITMG | 22029 | PTBA | 2696 | JSMR | 2620 | BRMS | 629 | CUAN | 722 | CPIN | 3344 | INKP | 7478 |
+| Top Sell | 14 | AKRA | 1181 | MDKA | 2516 | AMMN | 3403 | BULL | 325 | UNVR | 1655 | JPFA | 1929 | BNBR | 117 | MEDC | 1166 | UNTR | 22691 |
+| Top Sell | 13 | CMRY | 4129 | INKP | 6936 | INKP | 7812 | CUAN | 685 | AALI | 6184 | ADMR | 1638 | BUMI | 172 | MBMA | 525 | BUMI | 172 |
+| Top Sell | 12 | AADI | 7406 | AADI | 7678 | ADRO | 2263 | MBMA | 457 | KLBF | 738 | EMAS | 7105 | PTRO | 4353 | ISAT | 1782 | DEWA | 376 |
+| Top Sell | 11 | BREN | 3462 | AADI | 7985 | ADRO | 2256 | BREN | 3462 | MAPI | 1490 | PTRO | 4379 | BRMS | 482 | PGAS | 1542 | BIPI | 170 |
+| Top Sell | 10 | MBMA | 439 | BREN | 3884 | DEWA | 298 | ICBP | 6251 | IMPC | 1680 | ITMG | 23547 | AADI | 8160 | TPIA | 2026 | BRPT | 1724 |
+| Top Sell | 9 | ITMG | 21776 | MBMA | 446 | BIPI | 154 | MAPI | 1489 | ENRG | 1412 | BBNI | 3777 | ESSA | 651 | DSSA | 754 | AADI | 7880 |
+| Top Sell | 8 | AMMN | 3222 | ADMR | 1491 | BRMS | 514 | ITMG | 22306 | BRPT | 1720 | AADI | 8435 | DEWA | 368 | AMRT | 1400 | NCKL | 866 |
+| Top Sell | 7 | INDF | 5928 | ITMG | 21869 | BMRI | 4182 | TPIA | 1745 | LSIP | 1240 | AMMN | 3867 | KLBF | 729 | BUMI | 169 | TPIA | 2091 |
+| Top Sell | 6 | MDKA | 2468 | CUAN | 679 | CUAN | 783 | AMMN | 3119 | PSAB | 468 | ANTM | 3109 | BBNI | 3759 | ESSA | 676 | BBRI | 2938 |
+| Top Sell | 5 | IMPC | 1398 | BBRI | 2670 | ANTM | 2875 | TINS | 3196 | AADI | 8623 | INCO | 5212 | DSSA | 782 | BBNI | 3697 | TLKM | 2596 |
+| Top Sell | 4 | ANTM | 2611 | AMMN | 3305 | BUMI | 149 | BRPT | 1713 | ICBP | 6327 | DEWA | 374 | ASII | 4835 | BMRI | 4416 | BMRI | 4329 |
+| Top Sell | 3 | TLKM | 2429 | TPIA | 1733 | TPIA | 1952 | EMAS | 6757 | EMAS | 6965 | ASII | 4915 | BRMS | 684 | TLKM | 2729 | AMMN | 3826 |
+| Top Sell | 2 | BBRI | 2640 | BMRI | 3875 | BBCA | 5440 | BBRI | 2855 | BMRI | 4272 | BUMI | 176 | TLKM | 2977 | BBRI | 2983 | DSSA | 841 |
+| Top Sell | 1 | BBCA | 4920 | BBCA | 4996 | BBRI | 2848 | DSSA | 739 | BBRI | 2870 | DSSA | 862 | TPIA | 2051 | MAPI | 1506 | ASII | 4809 |
 `;
 
-        // --- WEEKLY FOREIGN (Week 16 - 25, 10 Kolom) ---
+        // --- WEEKLY FOREIGN (09 Kolom, Week 16 - 24) ---
         const WEEKLY_FOREIGN_RAW = `
-| Buy 1 | DSSA | 3262 | BBRI | 3265 | BBRI | 3053 | BBRI | 3210 | BMRI | 4246 | MDKA | 2526 | BBCA | 5824 | BMRI | 3998 | TPIA | 1743 | BBCA | 6291 |
-| Buy 2 | ASII | 6251 | EMAS | 9183 | BMRI | 4424 | BBCA | 6079 | PACK | 290 | BBCA | 5962 | ASII | 5097 | ASII | 4734 | ASII | 4621 | MDKA | 2839 |
-| Buy 3 | EMAS | 8320 | TLKM | 2910 | EMAS | 9561 | UNTR | 28805 | DSSA | 1137 | BUMI | 178 | BBRI | 2999 | BUMI | 149 | BUMI | 143 | TINS | 3544 |
-| Buy 4 | UNTR | 31390 | BULL | 539 | TLKM | 2814 | INDF | 7017 | BREN | 3459 | BMRI | 4167 | BMRI | 4144 | DEWA | 289 | BREN | 3971 | MYOR | 1893 |
-| Buy 5 | ADRO | 2503 | ANTM | 4059 | UNTR | 29740 | ADMR | 1895 | TPIA | 4622 | INCO | 5012 | TLKM | 3041 | ESSA | 597 | GOTO | 50 | GOTO | 50 |
-| Buy 6 | BNBR | 198 | UNTR | 32136 | BBNI | 3755 | BRIS | 1895 | AMRT | 1400 | AADI | 8204 | ANTM | 2952 | BIPI | 150 | PANI | 6108 | UNVR | 1670 |
-| Buy 7 | BBNI | 3707 | ASII | 6428 | ADRO | 2460 | BNBR | 200 | AADI | 9193 | BRPT | 1736 | MDKA | 2771 | INDY | 2005 | ARCI | 931 | BREN | 4006 |
-| Buy 8 | PGEO | 1047 | ENRG | 1941 | BRPT | 1950 | MINA | 380 | BDMN | 4645 | ASII | 5724 | UNTR | 23251 | MEDC | 1250 | BUVA | 689 | MARK | 899 |
-| Buy 9 | ESSA | 791 | BBTN | 1424 | ASII | 6063 | MAPI | 1384 | MAPI | 1491 | CUAN | 627 | INKP | 7684 | JPFA | 2127 | ISAT | 1820 | HRTA | 2198 |
-| Buy 10 | BRPT | 2279 | DEWA | 531 | PTRO | 5382 | ISAT | 2156 | AMMN | 3865 | MBMA | 477 | UNVR | 1715 | TINS | 2985 | MEDC | 1211 | AKRA | 1229 |
-| Buy 11 | INDF | 6870 | BRPT | 2219 | ARCI | 1633 | DEWA | 510 | BBCA | 6130 | INDY | 2409 | CPIN | 4295 | ARCI | 1024 | WIFI | 1477 | BUKA | 105 |
-| Buy 12 | ADMR | 1923 | MEDC | 1742 | AADI | 11240 | HRTA | 2793 | CPIN | 4060 | MAPI | 1483 | GOTO | 50 | EXCL | 2731 | EXCL | 2523 | SSIA | 1650 |
-| Buy 13 | SIMP | 839 | SSIA | 1723 | GOTO | 55 | BIPI | 236 | ISAT | 2256 | DEWA | 370 | JPFA | 2495 | SMGR | 1680 | MARK | 794 | ICBP | 6652 |
-| Buy 14 | NCKL | 1162 | BDMN | 3954 | ITMG | 25853 | TINS | 3839 | GGRM | 16817 | BUVA | 786 | NCKL | 865 | LSIP | 1257 | CDIA | 653 | MLBI | 6173 |
-| Buy 15 | MEDC | 1659 | BUVA | 1284 | INDF | 6828 | PNLF | 270 | WBSA | 1219 | PTRO | 4038 | MIKA | 1648 | PTBA | 2630 | MDKA | 2571 | DMAS | 155 |
-| Buy 16 | MDKA | 3300 | BRMS | 885 | SSIA | 1704 | FORE | 1014 | BRIS | 1848 | ARCI | 1176 | BUVA | 705 | PWON | 277 | WBSA | 703 | GGRM | 16329 |
-| Buy 17 | INCO | 6625 | PGAS | 1925 | ELSA | 817 | ARCI | 1532 | EXCL | 3051 | JPFA | 2587 | PTBA | 2807 | PGEO | 823 | BFIN | 637 | INET | 207 |
-| Buy 18 | BUKA | 160 | ARCI | 1598 | TAPG | 2086 | JPFA | 2576 | LSIP | 1521 | EXCL | 2809 | INCO | 5062 | ADMR | 1391 | FILM | 1667 | BIRD | 1611 |
-| Sell 18 | MSIN | 1034 | CUAN | 1502 | KLBF | 874 | AMMN | 4769 | TAPG | 1862 | IMPC | 1801 | MAPI | 1496 | ANTM | 2757 | ENRG | 1351 | BBNI | 3722 |
-| Sell 17 | INET | 329 | TAPG | 1991 | ERAA | 410 | AADI | 10268 | MDKA | 2826 | CBRE | 802 | BULL | 401 | BRMS | 534 | PWON | 247 | BBRI | 2978 |
-| Sell 16 | ITMG | 26985 | MBMA | 704 | BNBR | 213 | INCO | 6120 | INDY | 3149 | ISAT | 2161 | TPIA | 1883 | PTRO | 4412 | TKIM | 5091 | KLBF | 719 |
-| Sell 15 | PACK | 259 | CMRY | 4595 | ARKO | 10197 | TPIA | 5975 | INKP | 8862 | AMRT | 1407 | ISAT | 2155 | MAPI | 1492 | SUPA | 578 | MAPI | 1501 |
-| Sell 14 | INKP | 9957 | AADI | 10956 | SINI | 13850 | ESSA | 873 | EMAS | 7943 | IRSX | 391 | ENRG | 1376 | AADI | 7975 | IMPC | 1481 | AMRT | 1372 |
-| Sell 13 | BRIS | 2104 | ADMR | 1865 | RATU | 6436 | BUVA | 1101 | PTRO | 5156 | TLKM | 3051 | AADI | 8329 | EMAS | 7248 | AKRA | 1232 | EMAS | 7242 |
-| Sell 12 | IMPC | 2405 | IMPC | 2334 | IMPC | 2246 | KLBF | 883 | BNBR | 171 | BIPI | 194 | AKRA | 1258 | BREN | 3970 | INKP | 7301 | TPIA | 2053 |
-| Sell 11 | TPIA | 6464 | KETR | 577 | CDIA | 1048 | BREN | 4651 | ADRO | 2502 | ICBP | 6738 | ADRO | 2302 | ADRO | 2243 | ICBP | 6262 | ESSA | 647 |
-| Sell 10 | TLKM | 3131 | KLBF | 917 | INCO | 6857 | BMRI | 4563 | BUMI | 215 | TKIM | 6741 | EMAS | 7559 | BBCA | 5403 | CUAN | 706 | BRMS | 664 |
-| Sell 9 | AMMN | 5574 | UNVR | 1678 | UNVR | 1527 | EMAS | 8554 | INCO | 5903 | AALI | 6936 | INDF | 6918 | AMRT | 1335 | AMMN | 3288 | DEWA | 373 |
-| Sell 8 | BMRI | 4647 | MDKA | 3394 | BIPI | 248 | ADRO | 2510 | BBNI | 3828 | PGAS | 1821 | DSSA | 480 | TLKM | 2887 | MBMA | 456 | BMRI | 4392 |
-| Sell 7 | BREN | 6375 | AMMN | 5329 | BULL | 526 | ASII | 5888 | BIPI | 206 | MEDC | 1421 | AMMN | 3240 | INDF | 6345 | ITMG | 22117 | NCKL | 878 |
-| Sell 6 | PTRO | 6324 | BREN | 5557 | MDKA | 3345 | BUMI | 233 | BRPT | 2148 | PACK | 327 | BUMI | 173 | BBNI | 3483 | BBNI | 3338 | ASII | 4824 |
-| Sell 5 | BUMI | 254 | ADRO | 2514 | DEWA | 496 | ANTM | 3776 | CUAN | 944 | INDF | 6697 | BRMS | 599 | BRPT | 1848 | MAPI | 1489 | AADI | 7984 |
-| Sell 4 | BRMS | 866 | BUMI | 236 | BUMI | 229 | BRPT | 2189 | KLBF | 881 | BREN | 2842 | BRPT | 1799 | DSSA | 652 | EMAS | 6972 | BUMI | 174 |
-| Sell 3 | BBRI | 3426 | GOTO | 54 | ANTM | 3960 | GOTO | 50 | ANTM | 3601 | TPIA | 2525 | AMRT | 1175 | AMMN | 3514 | BMRI | 4009 | AMMN | 3838 |
-| Sell 2 | CUAN | 1489 | BMRI | 4646 | BBCA | 5960 | TLKM | 2905 | TLKM | 2938 | ANTM | 3076 | CUAN | 581 | BBRI | 2886 | BBCA | 5257 | TLKM | 2755 |
-| Sell 1 | BBCA | 6575 | BBCA | 6304 | CUAN | 1289 | CUAN | 1212 | BBRI | 3194 | BBRI | 3050 | BREN | 3130 | TPIA | 1525 | BBRI | 2757 | DSSA | 833 |
+| Buy 1 | DSSA | 3262 | BBRI | 3265 | BBRI | 3053 | BBRI | 3210 | BMRI | 4246 | MDKA | 2526 | BBCA | 5824 | BMRI | 3998 | TPIA | 1743 |
+| Buy 2 | ASII | 6251 | EMAS | 9183 | BMRI | 4424 | BBCA | 6079 | PACK | 290 | BBCA | 5962 | ASII | 5097 | ASII | 4734 | ASII | 4621 |
+| Buy 3 | EMAS | 8320 | TLKM | 2910 | EMAS | 9561 | UNTR | 28805 | DSSA | 1137 | BUMI | 178 | BBRI | 2999 | BUMI | 149 | BUMI | 143 |
+| Buy 4 | UNTR | 31390 | BULL | 539 | TLKM | 2814 | INDF | 7017 | BREN | 3459 | BMRI | 4167 | BMRI | 4144 | DEWA | 289 | BREN | 3971 |
+| Buy 5 | ADRO | 2503 | ANTM | 4059 | UNTR | 29740 | ADMR | 1895 | TPIA | 4622 | INCO | 5012 | TLKM | 3041 | ESSA | 597 | GOTO | 50 |
+| Buy 6 | BNBR | 198 | UNTR | 32136 | BBNI | 3755 | BRIS | 1895 | AMRT | 1400 | AADI | 8204 | ANTM | 2952 | BIPI | 150 | PANI | 6108 |
+| Buy 7 | BBNI | 3707 | ASII | 6428 | ADRO | 2460 | BNBR | 200 | AADI | 9193 | BRPT | 1736 | MDKA | 2771 | INDY | 2005 | ARCI | 931 |
+| Buy 8 | PGEO | 1047 | ENRG | 1941 | BRPT | 1950 | MINA | 380 | BDMN | 4645 | ASII | 5724 | UNTR | 23251 | MEDC | 1250 | BUVA | 689 |
+| Buy 9 | ESSA | 791 | BBTN | 1424 | ASII | 6063 | MAPI | 1384 | MAPI | 1491 | CUAN | 627 | INKP | 7684 | JPFA | 2127 | ISAT | 1820 |
+| Buy 10 | BRPT | 2279 | DEWA | 531 | PTRO | 5382 | ISAT | 2156 | AMMN | 3865 | MBMA | 477 | UNVR | 1715 | TINS | 2985 | MEDC | 1211 |
+| Buy 11 | INDF | 6870 | BRPT | 2219 | ARCI | 1633 | DEWA | 510 | BBCA | 6130 | INDY | 2409 | CPIN | 4295 | ARCI | 1024 | WIFI | 1477 |
+| Buy 12 | ADMR | 1923 | MEDC | 1742 | AADI | 11240 | HRTA | 2793 | CPIN | 4060 | MAPI | 1483 | GOTO | 50 | EXCL | 2731 | EXCL | 2523 |
+| Buy 13 | SIMP | 839 | SSIA | 1723 | GOTO | 55 | BIPI | 236 | ISAT | 2256 | DEWA | 370 | JPFA | 2495 | SMGR | 1680 | MARK | 794 |
+| Buy 14 | NCKL | 1162 | BDMN | 3954 | ITMG | 25853 | TINS | 3839 | GGRM | 16817 | BUVA | 786 | NCKL | 865 | LSIP | 1257 | CDIA | 653 |
+| Buy 15 | MEDC | 1659 | BUVA | 1284 | INDF | 6828 | PNLF | 270 | WBSA | 1219 | PTRO | 4038 | MIKA | 1648 | PTBA | 2630 | MDKA | 2571 |
+| Buy 16 | MDKA | 3300 | BRMS | 885 | SSIA | 1704 | FORE | 1014 | BRIS | 1848 | ARCI | 1176 | BUVA | 705 | PWON | 277 | WBSA | 703 |
+| Buy 17 | INCO | 6625 | PGAS | 1925 | ELSA | 817 | ARCI | 1532 | EXCL | 3051 | JPFA | 2587 | PTBA | 2807 | PGEO | 823 | BFIN | 637 |
+| Buy 18 | BUKA | 160 | ARCI | 1598 | TAPG | 2086 | JPFA | 2576 | LSIP | 1521 | EXCL | 2809 | INCO | 5062 | ADMR | 1391 | FILM | 1667 |
+| Sell 18 | MSIN | 1034 | CUAN | 1502 | KLBF | 874 | AMMN | 4769 | TAPG | 1862 | IMPC | 1801 | MAPI | 1496 | ANTM | 2757 | ENRG | 1351 |
+| Sell 17 | INET | 329 | TAPG | 1991 | ERAA | 410 | AADI | 10268 | MDKA | 2826 | CBRE | 802 | BULL | 401 | BRMS | 534 | PWON | 247 |
+| Sell 16 | ITMG | 26985 | MBMA | 704 | BNBR | 213 | INCO | 6120 | INDY | 3149 | ISAT | 2161 | TPIA | 1883 | PTRO | 4412 | TKIM | 5091 |
+| Sell 15 | PACK | 259 | CMRY | 4595 | ARKO | 10197 | TPIA | 5975 | INKP | 8862 | AMRT | 1407 | ISAT | 2155 | MAPI | 1492 | SUPA | 578 |
+| Sell 14 | INKP | 9957 | AADI | 10956 | SINI | 13850 | ESSA | 873 | EMAS | 7943 | IRSX | 391 | ENRG | 1376 | AADI | 7975 | IMPC | 1481 |
+| Sell 13 | BRIS | 2104 | ADMR | 1865 | RATU | 6436 | BUVA | 1101 | PTRO | 5156 | TLKM | 3051 | AADI | 8329 | EMAS | 7248 | AKRA | 1232 |
+| Sell 12 | IMPC | 2405 | IMPC | 2334 | IMPC | 2246 | KLBF | 883 | BNBR | 171 | BIPI | 194 | AKRA | 1258 | BREN | 3970 | INKP | 7301 |
+| Sell 11 | TPIA | 6464 | KETR | 577 | CDIA | 1048 | BREN | 4651 | ADRO | 2502 | ICBP | 6738 | ADRO | 2302 | ADRO | 2243 | ICBP | 6262 |
+| Sell 10 | TLKM | 3131 | KLBF | 917 | INCO | 6857 | BMRI | 4563 | BUMI | 215 | TKIM | 6741 | EMAS | 7559 | BBCA | 5403 | CUAN | 706 |
+| Sell 9 | AMMN | 5574 | UNVR | 1678 | UNVR | 1527 | EMAS | 8554 | INCO | 5903 | AALI | 6936 | INDF | 6918 | AMRT | 1335 | AMMN | 3288 |
+| Sell 8 | BMRI | 4647 | MDKA | 3394 | BIPI | 248 | ADRO | 2510 | BBNI | 3828 | PGAS | 1821 | DSSA | 480 | TLKM | 2887 | MBMA | 456 |
+| Sell 7 | BREN | 6375 | AMMN | 5329 | BULL | 526 | ASII | 5888 | BIPI | 206 | MEDC | 1421 | AMMN | 3240 | INDF | 6345 | ITMG | 22117 |
+| Sell 6 | PTRO | 6324 | BREN | 5557 | MDKA | 3345 | BUMI | 233 | BRPT | 2148 | PACK | 327 | BUMI | 173 | BBNI | 3483 | BBNI | 3338 |
+| Sell 5 | BUMI | 254 | ADRO | 2514 | DEWA | 496 | ANTM | 3776 | CUAN | 944 | INDF | 6697 | BRMS | 599 | BRPT | 1848 | MAPI | 1489 |
+| Sell 4 | BRMS | 866 | BUMI | 236 | BUMI | 229 | BRPT | 2189 | KLBF | 881 | BREN | 2842 | BRPT | 1799 | DSSA | 652 | EMAS | 6972 |
+| Sell 3 | BBRI | 3426 | GOTO | 54 | ANTM | 3960 | GOTO | 50 | ANTM | 3601 | TPIA | 2525 | AMRT | 1175 | AMMN | 3514 | BMRI | 4009 |
+| Sell 2 | CUAN | 1489 | BMRI | 4646 | BBCA | 5960 | TLKM | 2905 | TLKM | 2938 | ANTM | 3076 | CUAN | 581 | BBRI | 2886 | BBCA | 5257 |
+| Sell 1 | BBCA | 6575 | BBCA | 6304 | CUAN | 1289 | CUAN | 1212 | BBRI | 3194 | BBRI | 3050 | BREN | 3130 | TPIA | 1525 | BBRI | 2757 |
 `;
 
         // ==========================================
@@ -202,9 +202,9 @@
         // 3. FUNGSI PARSING & EXTRACT HARGA
         // ==========================================
         
-        // --- 3A. Parsing Retail (10 Kolom) ---
+        // --- 3A. Parsing Retail (9 Kolom) ---
         function parseRetailData() {
-            const dates = ['08 Jun', '09 Jun', '10 Jun', '11 Jun', '12 Jun', '15 Jun', '17 Jun', '18 Jun', '19 Jun', '22 Jun'];
+            const dates = ['08 Jun', '09 Jun', '10 Jun', '11 Jun', '12 Jun', '15 Jun', '17 Jun', '18 Jun', '19 Jun'];
             const seriesMap = {};
             const lines = RETAIL_RAW.trim().split('\n');
 
@@ -221,7 +221,8 @@
                 const rank = parseInt(matchType[2], 10);
                 let r = (type === 'Buy') ? rank - 1 : 37 - rank; 
 
-                const tickerColIndices = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20];
+                // Ticker di kolom genap, harga di kolom +1
+                const tickerColIndices = [2, 4, 6, 8, 10, 12, 14, 16, 18];
                 tickerColIndices.forEach((colIdx, dIndex) => {
                     const ticker = cols[colIdx];
                     const price = cols[colIdx + 1]; 
@@ -238,9 +239,9 @@
             return { dates, series: seriesArray };
         }
 
-        // --- 3B. Parsing Foreign (10 Kolom) ---
+        // --- 3B. Parsing Foreign (9 Kolom) ---
         function parseForeignData() {
-            const dates = ['08 Jun', '09 Jun', '10 Jun', '11 Jun', '12 Jun', '15 Jun', '17 Jun', '18 Jun', '19 Jun', '22 Jun'];
+            const dates = ['08 Jun', '09 Jun', '10 Jun', '11 Jun', '12 Jun', '15 Jun', '17 Jun', '18 Jun', '19 Jun'];
             const seriesMap = {};
             const lines = FOREIGN_RAW.trim().split('\n');
 
@@ -255,7 +256,8 @@
 
                 let r = (type === 'Top Buy') ? rank - 1 : 37 - rank; 
 
-                const tickerColIndices = [3, 5, 7, 9, 11, 13, 15, 17, 19, 21];
+                // Ticker di kolom ganjil, Harga di kolom +1
+                const tickerColIndices = [3, 5, 7, 9, 11, 13, 15, 17, 19];
                 tickerColIndices.forEach((colIdx, dIndex) => {
                     const ticker = cols[colIdx];
                     const price = cols[colIdx + 1]; 
@@ -272,9 +274,9 @@
             return { dates, series: seriesArray };
         }
 
-        // --- 3C. Parsing Weekly Foreign (10 Kolom) ---
+        // --- 3C. Parsing Weekly Foreign (9 Kolom) ---
         function parseWeeklyForeignData() {
-            const dates = ['Week 16', 'Week 17', 'Week 18', 'Week 19', 'Week 20', 'Week 21', 'Week 22', 'Week 23', 'Week 24', 'Week 25'];
+            const dates = ['Week 16', 'Week 17', 'Week 18', 'Week 19', 'Week 20', 'Week 21', 'Week 22', 'Week 23', 'Week 24'];
             const seriesMap = {};
             const lines = WEEKLY_FOREIGN_RAW.trim().split('\n');
 
@@ -291,7 +293,8 @@
                 const rank = parseInt(matchType[2], 10);
                 let r = (type === 'Buy') ? rank - 1 : 37 - rank; 
 
-                const tickerColIndices = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20];
+                // Ticker di kolom genap, harga di kolom +1
+                const tickerColIndices = [2, 4, 6, 8, 10, 12, 14, 16, 18];
                 tickerColIndices.forEach((colIdx, dIndex) => {
                     const ticker = cols[colIdx];
                     const price = cols[colIdx + 1]; 
@@ -601,9 +604,9 @@
         // 5. INISIALISASI SEMUA CHART
         // ==========================================
         
-        buildChart("retailChartContainer", "Gabungan Daily Retail Flow Rank (Top Buy & Top Sell)", parseRetailData(), 2000);
-        buildChart("foreignChartContainer", "Gabungan Foreign Flow Rank (Top Buy & Top Sell)", parseForeignData(), 2000);
-        buildChart("weeklyForeignChartContainer", "Gabungan Weekly Foreign Flow Rank (Top Buy & Top Sell)", parseWeeklyForeignData(), 2000);
+        buildChart("retailChartContainer", "Gabungan Daily Retail Flow Rank (Top Buy & Top Sell)", parseRetailData(), 1900);
+        buildChart("foreignChartContainer", "Gabungan Foreign Flow Rank (Top Buy & Top Sell)", parseForeignData(), 1900);
+        buildChart("weeklyForeignChartContainer", "Gabungan Weekly Foreign Flow Rank (Top Buy & Top Sell)", parseWeeklyForeignData(), 1900);
 
     </script>
 </body>
