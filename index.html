@@ -7,9 +7,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     
-    <title>Jam & Kalender Digital Responsif</title>
+    <title>Jam, Detik & Kalender Digital</title>
     <style>
-        /* Mengubah ukuran menjadi 100% responsif mengikuti sisa layar browser */
         html, body {
             width: 100%;
             height: 100%;
@@ -18,9 +17,9 @@
             background-color: #000000;
             color: #ffffff;
             font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            overflow: hidden; /* Mencegah scroll demi estetika jam dinding */
         }
 
-        /* Struktur wrapper fleksibel tanpa mengunci pixel */
         .wrapper {
             display: table;
             width: 100%;
@@ -32,58 +31,73 @@
             display: table-cell;
             vertical-align: middle;
             text-align: center;
-            padding: 10px;
+            padding: 5px 10px;
         }
 
-        /* Jam Digital - Disesuaikan agar pas di berbagai kondisi layar */
-        #clock {
+        /* Area Jam & Detik */
+        .clock-container {
             color: #ff0000;
-            font-size: 180px; 
             font-weight: bold;
             line-height: 0.85;
-            margin-bottom: 5px;
-            letter-spacing: -6px;
+            margin-bottom: 10px;
         }
 
-        /* Baris Tanggal */
+        #clock {
+            font-size: 190px; 
+            letter-spacing: -4px;
+            display: inline-block;
+            vertical-align: bottom;
+        }
+
+        /* Detik: Ukuran lebih kecil & Merah Gelap Transparan */
+        #seconds {
+            font-size: 85px;
+            color: rgba(255, 0, 0, 0.35); /* Transparansi merah gelap */
+            display: inline-block;
+            vertical-align: bottom;
+            margin-left: 15px;
+            padding-bottom: 20px; /* Mengangkat posisi detik agar sejajar bawah jam */
+        }
+
+        /* Baris Tanggal - UKURAN DIPERBESAR */
         #date-line {
-            font-size: 50px;
+            font-size: 58px;
             font-weight: bold;
-            margin-bottom: 15px;
+            margin-bottom: 25px;
         }
         #date { color: #ffffff; }
-        #week { color: #ffff00; margin-left: 20px; }
-        #day { color: #00bfff; margin-left: 20px; } 
+        #week { color: #ffff00; margin-left: 25px; }
+        #day { color: #00bfff; margin-left: 25px; } 
 
-        /* Tabel Kalender - Ukuran font dimaksimalkan secara aman */
+        /* Tabel Kalender - UKURAN DIPERBESAR */
         table {
             border-collapse: collapse;
-            font-size: 42px; 
+            font-size: 50px; 
             font-weight: bold;
             margin: 0 auto;
         }
 
-        /* Ukuran sel dibuat fleksibel namun tetap besar */
+        /* Lebar dan tinggi sel disesuaikan agar font besar tidak tumpang tindih */
         th, td {
-            width: 90px; 
-            height: 62px; 
+            width: 105px; 
+            height: 70px; 
             text-align: center;
             vertical-align: middle;
             padding: 0;
         }
 
-        th { color: #00bfff; padding-bottom: 5px; } 
+        th { color: #00bfff; padding-bottom: 10px; } 
         th.day-mi { color: #ff0000; } 
         
         td.week-num { color: #ffff00; } 
         td.sunday { color: #ff0000; } 
         
-        /* Lingkaran kuning otomatis menyesuaikan ukuran font baru */
+        /* Lingkaran kuning pembungkus hari ini mengikuti skala font baru */
         td.today span {
             display: inline-block;
-            width: 62px;
-            height: 62px;
-            line-height: 54px; /* Mengatur teks pas di tengah lingkaran */
+            width: 72px;
+            height: 72px;
+            line-height: 64px; 
             border: 4px solid #ffff00;
             border-radius: 50%;
             box-sizing: border-box;
@@ -95,7 +109,9 @@
     <div class="wrapper">
         <div class="container">
             
-            <div id="clock">--:--</div>
+            <div class="clock-container">
+                <span id="clock">-- : --</span><span id="seconds">--</span>
+            </div>
             
             <div id="date-line">
                 <span id="date">----.--.--</span>
@@ -139,30 +155,44 @@
         }
 
         var dayNames = ['Mi', 'Se', 'Sl', 'Ra', 'Ka', 'Ju', 'Sa'];
+        var currentDayCheck = -1; // Penanda untuk melacak pergantian hari secara presisi
 
         function updateClock() {
             var now = new Date();
 
+            // 1. Update Jam & Menit dengan ekstra space (Jam : Menit)
             var hours = padZero(now.getHours());
             var minutes = padZero(now.getMinutes());
-            document.getElementById('clock').innerHTML = hours + ':' + minutes;
+            document.getElementById('clock').innerHTML = hours + ' : ' + minutes;
 
-            var year = now.getFullYear();
-            var month = padZero(now.getMonth() + 1); 
-            var date = padZero(now.getDate());
-            document.getElementById('date').innerHTML = year + '.' + month + '.' + date;
+            // 2. Update Detik secara real-time
+            var secs = padZero(now.getSeconds());
+            document.getElementById('seconds').innerHTML = secs;
 
-            var weekNum = getISOWeekNumber(now);
-            document.getElementById('week').innerHTML = 'W' + weekNum;
+            // 3. Update data teks tanggal & pengecekan kalender
+            var todayDate = now.getDate();
+            if (todayDate !== currentDayCheck) {
+                currentDayCheck = todayDate;
+                
+                var year = now.getFullYear();
+                var month = padZero(now.getMonth() + 1); 
+                document.getElementById('date').innerHTML = year + '.' + month + '.' + padZero(todayDate);
 
-            var dayName = dayNames[now.getDay()];
-            document.getElementById('day').innerHTML = dayName;
+                var weekNum = getISOWeekNumber(now);
+                document.getElementById('week').innerHTML = 'W' + weekNum;
 
+                var dayName = dayNames[now.getDay()];
+                document.getElementById('day').innerHTML = dayName;
+
+                // Perbarui susunan kalender hanya saat tanggal berganti
+                generateCalendar(now);
+            }
+
+            // Dijalankan ulang setiap 1 detik agar detik terus berjalan mulus
             setTimeout(updateClock, 1000);
         }
 
-        function generateCalendar() {
-            var now = new Date();
+        function generateCalendar(now) {
             var year = now.getFullYear();
             var month = now.getMonth();
             var todayDate = now.getDate();
@@ -201,7 +231,7 @@
                             td.className = 'sunday';
                         }
 
-                        if (dateCounter === todayDate && month === new Date().getMonth() && year === new Date().getFullYear()) {
+                        if (dateCounter === todayDate) {
                             td.className += (td.className === '' ? '' : ' ') + 'today';
                             td.innerHTML = '<span>' + dateCounter + '</span>';
                         } else {
@@ -216,17 +246,8 @@
             }
         }
 
+        // Jalankan sistem jam utama
         updateClock();
-        generateCalendar();
-
-        // Cek pergantian hari setiap 1 menit untuk memperbarui kalender
-        setInterval(function() {
-            var now = new Date();
-            if (now.getHours() === 0 && now.getMinutes() === 0) {
-                generateCalendar();
-            }
-        }, 60000); 
-
     </script>
 </body>
 </html>
