@@ -2,614 +2,224 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gabungan Flow Rank (Retail & Foreign)</title>
+    <meta name="viewport" content="width=1024, user-scalable=no">
+    <title>Jam & Kalender Digital 1024x768 - Max Size</title>
     <style>
-        body {
+        /* Mengunci ukuran layar persis 1024x768 (iPad Lanskap) */
+        html, body {
+            width: 1024px;
+            height: 768px;
             margin: 0;
             padding: 0;
-            background-color: #111111;
-            font-family: sans-serif;
+            background-color: #000000;
             color: #ffffff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            overflow: auto;
-            padding: 2rem;
-            gap: 4rem;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            overflow: hidden; /* Mencegah layar tergeser/scroll */
         }
 
-        .chart-container {
-            width: 100%;
-            filter: drop-shadow(0 25px 25px rgb(0 0 0 / 0.15));
+        /* Trik 'table' lawas untuk vertikal & horizontal center */
+        .wrapper {
+            display: table;
+            width: 1024px;
+            height: 768px;
         }
 
-        #retailChartContainer, #foreignChartContainer, #weeklyForeignChartContainer { max-width: 1900px; }
-
-        svg {
-            width: 100%;
-            height: auto;
-            background-color: #111111;
-            border-radius: 8px;
+        .container {
+            display: table-cell;
+            vertical-align: middle;
+            text-align: center;
         }
 
-        .series-line, .series-point, .series-label, .series-price {
-            transition: all 0.2s ease-in-out;
+        /* Jam Digital - Margin bawah dikurangi agar kalender bisa lebih besar */
+        #clock {
+            color: #ff0000;
+            font-size: 230px; 
+            font-weight: bold;
+            line-height: 0.85;
+            margin-bottom: 10px;
+            letter-spacing: -8px;
         }
 
-        .hitbox {
-            cursor: pointer;
+        /* Baris Tanggal - Margin bawah dikurangi */
+        #date-line {
+            font-size: 65px;
+            font-weight: bold;
+            margin-bottom: 20px;
         }
+        #date { color: #ffffff; }
+        #week { color: #ffff00; margin-left: 25px; }
+        #day { color: #00bfff; margin-left: 25px; } 
+
+        /* Tabel Kalender - UKURAN FONT DIPERBESAR MAKSIMAL */
+        table {
+            border-collapse: collapse;
+            font-size: 58px; /* Naik signifikan dari sebelumnya */
+            font-weight: bold;
+            margin: 0 auto;
+        }
+
+        /* Ukuran sel disesuaikan untuk mengakomodasi font yang lebih besar */
+        th, td {
+            width: 115px; 
+            height: 75px; 
+            text-align: center;
+            vertical-align: middle;
+            padding: 0;
+        }
+
+        th { color: #00bfff; padding-bottom: 5px; } 
+        th.day-mi { color: #ff0000; } 
         
-        .svg-background {
-            cursor: default;
+        td.week-num { color: #ffff00; } 
+        td.sunday { color: #ff0000; } 
+        
+        /* Lingkaran kuning diperbesar agar pas dengan font 58px */
+        td.today span {
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+            line-height: 72px; /* Disesuaikan agar teks pas di tengah */
+            border: 5px solid #ffff00;
+            border-radius: 50%;
+            box-sizing: border-box;
         }
     </style>
 </head>
 <body>
 
-    <div class="chart-container" id="retailChartContainer"></div>
-    <div class="chart-container" id="foreignChartContainer"></div>
-    <div class="chart-container" id="weeklyForeignChartContainer"></div>
+    <div class="wrapper">
+        <div class="container">
+            
+            <div id="clock">--:--</div>
+            
+            <div id="date-line">
+                <span id="date">----.--.--</span>
+                <span id="week">W--</span>
+                <span id="day">--</span>
+            </div>
+
+            <table id="calendar">
+                <thead>
+                    <tr>
+                        <th></th> 
+                        <th>Se</th>
+                        <th>Sl</th>
+                        <th>Ra</th>
+                        <th>Ka</th>
+                        <th>Ju</th>
+                        <th>Sa</th>
+                        <th class="day-mi">Mi</th>
+                    </tr>
+                </thead>
+                <tbody id="calendar-body">
+                    </tbody>
+            </table>
+
+        </div>
+    </div>
 
     <script>
-        // ==========================================
-        // 1. DATA MENTAH (TERSTRUKTUR ULANG PRESISI)
-        // ==========================================
-        
-        // --- DATA RETAIL (18 Jun - 02 Jul, 10 Hari Terakhir) ---
-        const RETAIL_RAW = `
-| Buy 1 | BMRI | 4404 | BMRI | 4347 | DSSA | 851 | BMRI | 4132 | BBRI | 2865 | BBRI | 2847 | DSSA | 816 | BBCA | 6022 | BBCA | 5670 | BBRI | 2700 |
-| Buy 2 | BBRI | 2987 | BBRI | 2945 | BBRI | 2902 | DSSA | 833 | ANTM | 2801 | ANTM | 2710 | BMRI | 3945 | BBRI | 2842 | BBRI | 2772 | BBNI | 3193 |
-| Buy 3 | TLKM | 2732 | TLKM | 2607 | TPIA | 1982 | KLBF | 739 | TPIA | 1922 | TPIA | 1868 | ANTM | 2707 | BMRI | 3960 | BMRI | 3877 | DSSA | 816 |
-| Buy 4 | DSSA | 753 | AMMN | 3839 | ANTM | 2955 | TLKM | 2562 | BUMI | 156 | TINS | 3595 | EMAS | 6342 | BBNI | 3281 | ANTM | 2622 | JPFA | 1960 |
-| Buy 5 | TPIA | 2029 | DSSA | 832 | BBNI | 3567 | MBMA | 519 | ASII | 4707 | BUMI | 148 | BBNI | 3294 | TPIA | 1769 | BBNI | 3203 | BRMS | 499 |
-| Buy 6 | CUAN | 692 | TPIA | 2093 | BUMI | 164 | AMMN | 3719 | BBNI | 3350 | MDKA | 2804 | CUAN | 577 | MBMA | 499 | ESSA | 531 | MDKA | 2582 |
-| Buy 7 | EMAS | 7101 | NCKL | 869 | BMRI | 4260 | ARKO | 5650 | BMRI | 4046 | MBMA | 505 | TLKM | 2417 | AMRT | 1421 | ASII | 4555 | RAJA | 3968 |
-| Buy 8 | MAPI | 1508 | ASII | 4807 | AMMN | 3832 | TINS | 3700 | DEWA | 343 | DSSA | 822 | ADRO | 2265 | IMPC | 1378 | BRMS | 465 | MTEL | 494 |
-| Buy 9 | ISAT | 1776 | BRPT | 1731 | INCO | 5239 | ASII | 4684 | TLKM | 2517 | PTBA | 2392 | HRTA | 1784 | ESSA | 580 | AMRT | 1393 | PGAS | 1368 |
-| Buy 10 | INCO | 5084 | AADI | 7910 | BRPT | 1638 | ANTM | 2870 | AMMN | 3583 | INKP | 7425 | TPIA | 1812 | JSMR | 2850 | BUMI | 134 | EMAS | 5715 |
-| Buy 11 | ANTM | 3141 | EMAS | 7539 | EMAS | 7143 | ENRG | 1346 | BBCA | 6057 | INCO | 4554 | MBMA | 494 | ERAA | 356 | JPFA | 1949 | PTBA | 2284 |
-| Buy 12 | AMRT | 1403 | UNTR | 22681 | AADI | 8061 | AKRA | 1259 | BUVA | 873 | EMAS | 6949 | AMMN | 3290 | MEDC | 1060 | INCO | 4232 | MAPI | 1521 |
-| Buy 13 | BUMI | 169 | BUMI | 171 | ASII | 4777 | EMAS | 6943 | EMAS | 6863 | JPFA | 1961 | BRMS | 497 | MDKA | 2678 | PGAS | 1375 | NCKL | 820 |
-| Buy 14 | NCKL | 920 | ANTM | 3100 | PTRO | 4146 | TCPI | 7300 | INCO | 4767 | ASII | 4860 | ARCI | 914 | ANTM | 2749 | NCKL | 790 | MBMA | 516 |
-| Buy 15 | ITMG | 22364 | CPIN | 3323 | MDKA | 2960 | ESSA | 651 | IMPC | 1638 | KLBF | 787 | MDKA | 2756 | PTBA | 2333 | INTP | 4138 | BBTN | 1086 |
-| Buy 16 | ADRO | 2282 | DEWA | 375 | KLBF | 682 | INCO | 5002 | NCKL | 833 | DEWA | 327 | TINS | 3498 | INDF | 6711 | MTEL | 521 | JSMR | 2665 |
-| Buy 17 | BBCA | 6156 | ADRO | 2234 | PWON | 250 | ICBP | 6540 | AADI | 8004 | TKIM | 5895 | KLBF | 784 | INTP | 4131 | AMMN | 3134 | INKP | 6977 |
-| Buy 18 | INDY | 2296 | TKIM | 6003 | BRMS | 637 | INDY | 2200 | PTRO | 4167 | TOWR | 386 | BRPT | 1496 | MTEL | 488 | ITMG | 21977 | TOWR | 369 |
-| Sell 18 | MARK | 893 | PANI | 6645 | BSML | 474 | SMGR | 1508 | INTP | 4151 | DMAS | 139 | RAJA | 3787 | BBTN | 1115 | INDF | 6662 | MYOR | 1760 |
-| Sell 17 | HMSP | 599 | BBTN | 1230 | BREN | 3702 | ITMG | 22310 | CPIN | 3153 | EXCL | 2571 | RATU | 4602 | MYOR | 1871 | BULL | 321 | INDF | 6778 |
-| Sell 16 | BIPI | 154 | BNGA | 1607 | WBSA | 759 | DMAS | 155 | VKTR | 578 | ARCI | 948 | BIPI | 125 | BREN | 3252 | IMPC | 1369 | AMMN | 3304 |
-| Sell 15 | MSIN | 598 | MDKA | 3016 | BIPI | 152 | OMED | 210 | ICBP | 6518 | MAPA | 627 | BNBR | 95 | BULL | 346 | UNVR | 1799 | VKTR | 508 |
-| Sell 14 | MEDC | 1164 | CYBR | 651 | UNVR | 1687 | BULL | 380 | JPFA | 1909 | BFIN | 765 | PANI | 6280 | UNVR | 1766 | PANI | 5862 | ITMG | 22465 |
-| Sell 13 | BUVA | 834 | BULL | 386 | AMRT | 1401 | BREN | 3733 | SCMA | 217 | CUAN | 635 | INKP | 7195 | BUVA | 740 | EMAS | 5655 | ADRO | 2291 |
-| Sell 12 | CPIN | 3341 | LSIP | 1314 | MORA | 8514 | BNBR | 106 | GGRM | 16587 | AKRA | 1294 | MAPA | 634 | KLBF | 795 | CUAN | 542 | INDY | 1875 |
-| Sell 11 | ASII | 4760 | UVCR | 187 | MBMA | 517 | PTRO | 4216 | SMGR | 1518 | BRPT | 1593 | ESSA | 617 | DSSA | 829 | SSIA | 1453 | TLKM | 2461 |
-| Sell 10 | ICBP | 6583 | JSMR | 2579 | ITMG | 22514 | WIFI | 1670 | ADRO | 2258 | ICBP | 6725 | GGRM | 16609 | CUAN | 572 | TPIA | 1666 | TINS | 3388 |
-| Sell 9 | TINS | 3597 | PGEO | 897 | GGRM | 17014 | DEWA | 354 | AKRA | 1285 | UNVR | 1756 | INDF | 6747 | ADRO | 2268 | MYOR | 1831 | AMRT | 1397 |
-| Sell 8 | JPFA | 1948 | MAPI | 1510 | BULL | 381 | BBCA | 6130 | UNVR | 1666 | AADI | 8041 | PTRO | 3855 | TINS | 3475 | BREN | 3116 | BNBR | 102 |
-| Sell 7 | DEWA | 368 | BBCA | 6220 | BUKA | 102 | TPIA | 1988 | BRMS | 580 | AMMN | 3448 | UNTR | 22244 | AMMN | 3318 | DSSA | 805 | MEDC | 1065 |
-| Sell 6 | KLBF | 710 | ISAT | 1723 | PTBA | 2581 | BUKA | 97 | TINS | 3604 | BRMS | 551 | AADI | 8066 | ENRG | 1105 | ICBP | 6765 | ANTM | 2743 |
-| Sell 5 | AADI | 8073 | SMGR | 1465 | INDF | 6741 | JSMR | 2840 | CUAN | 636 | TLKM | 2524 | ASII | 4784 | BUMI | 141 | CPIN | 3286 | UNTR | 22543 |
-| Sell 4 | ESSA | 673 | BUKA | 103 | ADRO | 2271 | UNTR | 22409 | BREN | 3687 | BBNI | 3376 | MAPI | 1511 | MAPI | 1511 | INKP | 7067 | BMRI | 3921 |
-| Sell 3 | BRPT | 1710 | UNVR | 1656 | MAPI | 1513 | INDF | 6761 | BUKA | 101 | UNTR | 22353 | DEWA | 304 | AADI | 8006 | UNTR | 22431 | BRPT | 1496 |
-| Sell 2 | MDKA | 2830 | ICBP | 6677 | TINS | 3682 | BBNI | 3428 | MAPI | 1520 | AMRT | 1452 | BBRI | 2843 | PGAS | 1439 | AADI | 7832 | TPIA | 1766 |
-| Sell 1 | AMMN | 3858 | MYOR | 1975 | BBCA | 6222 | BBRI | 2912 | DSSA | 799 | BMRI | 4020 | BBCA | 6115 | TLKM | 2425 | TLKM | 2367 | BBCA | 5807 |
-`;
+        // JAVASCRIPT ES5 (Kompatibel untuk Safari 9 / iOS 9)
 
-        // --- DATA FOREIGN (18 Jun - 02 Jul, 10 Hari Terakhir) ---
-        const FOREIGN_RAW = `
-| Top Buy | 1 | AMMN | 3941 | BBCA | 6266 | BBCA | 6224 | BBRI | 2914 | TLKM | 2524 | DSSA | 826 | BBCA | 6111 | TLKM | 2427 | TLKM | 2364 | BMRI | 3919 |
-| Top Buy | 2 | BBCA | 6148 | MYOR | 1958 | TINS | 3687 | TPIA | 1986 | MAPI | 1519 | UNTR | 22384 | BBRI | 2845 | PGAS | 1440 | CPIN | 3336 | UNTR | 22579 |
-| Top Buy | 3 | BRPT | 1716 | UNVR | 1674 | PTBA | 2583 | PTRO | 4184 | CUAN | 629 | BRPT | 1593 | INDF | 6743 | TINS | 3473 | ICBP | 6764 | BREN | 3375 |
-| Top Buy | 4 | KLBF | 711 | GOTO | 50 | BREN | 3712 | BBNI | 3426 | BBCA | 6020 | TPIA | 1864 | DEWA | 304 | BUVA | 743 | ESSA | 530 | TPIA | 1767 |
-| Top Buy | 5 | UNTR | 22674 | ICBP | 6693 | ADRO | 2279 | BRPT | 1637 | BUKA | 101 | GGRM | 16946 | BIPI | 125 | MAPI | 1513 | INKP | 7074 | MEDC | 1065 |
-| Top Buy | 6 | CUAN | 691 | MDKA | 3001 | GGRM | 17002 | INDF | 6756 | KLBF | 766 | RAJA | 3892 | BUMI | 141 | IMPC | 1378 | UNTR | 22421 | WIFI | 1677 |
-| Top Buy | 7 | TINS | 3585 | BUKA | 105 | GOTO | 50 | RAJA | 4001 | MDKA | 2753 | PANI | 6622 | ESSA | 617 | CUAN | 573 | ARKO | 5006 | BBCA | 5793 |
-| Top Buy | 8 | GOTO | 50 | ISAT | 1726 | CUAN | 659 | BUKA | 97 | GGRM | 16604 | AKRA | 1293 | BRMS | 497 | BUMI | 141 | BREN | 3123 | MYOR | 1758 |
-| Top Buy | 9 | JPFA | 1953 | PGEO | 899 | JSMR | 2754 | JSMR | 2837 | UNVR | 1666 | DMAS | 139 | UNTR | 22229 | AMMN | 3309 | MYOR | 1832 | KLBF | 750 |
-| Top Buy | 10 | BIPI | 154 | CYBR | 651 | ITMG | 22540 | BUVA | 885 | ASII | 4707 | ICBP | 6752 | GGRM | 16606 | ENRG | 1104 | GOTO | 50 | BNBR | 101 |
-| Top Buy | 11 | PTRO | 4249 | MORA | 7434 | MDKA | 2954 | UNTR | 22401 | TINS | 3601 | WIFI | 1617 | MEDC | 1064 | UNVR | 1767 | UNVR | 1799 | COCO | 230 |
-| Top Buy | 12 | DEWA | 368 | CMRY | 4359 | RAJA | 3761 | BRMS | 627 | SCMA | 214 | BBNI | 3371 | PTRO | 3874 | TCPI | 7275 | PNBN | 885 | INCO | 4344 |
-| Top Buy | 13 | ANTM | 3150 | PACK | 260 | NCKL | 875 | BBCA | 6139 | ICBP | 6533 | EXCL | 2561 | ASII | 4773 | ARCI | 920 | TPIA | 1666 | VKTR | 506 |
-| Top Buy | 14 | BUVA | 839 | KETR | 562 | BULL | 381 | SMGR | 1508 | SMGR | 1517 | BAIK | 567 | BBTN | 1102 | ADRO | 2271 | INDF | 6665 | SMGR | 1409 |
-| Top Buy | 15 | INCO | 5065 | INET | 208 | ERAA | 371 | BUMI | 163 | CPIN | 3147 | FILM | 1753 | ARCI | 910 | BULL | 346 | BUVA | 704 | ENRG | 1047 |
-| Top Buy | 16 | RAJA | 3798 | GULA | 604 | AMRT | 1401 | CUAN | 671 | JPFA | 1908 | MAPA | 626 | INKP | 7214 | GGRM | 16294 | IMPC | 1376 | INDY | 1874 |
-| Top Buy | 17 | PANI | 6706 | BRIS | 1835 | INTP | 3975 | BNBR | 106 | UNTR | 22160 | AMRT | 1448 | TCPI | 7155 | SAME | 399 | RAJA | 3608 | TINS | 3387 |
-| Top Buy | 18 | HMSP | 599 | AYAM | 348 | MORA | 8719 | MAPI | 1518 | INTP | 4135 | AADI | 8047 | MAPA | 631 | HRTA | 1779 | SSIA | 1447 | MARK | 975 |
-| Top Sell | 18 | MIKA | 1575 | AMRT | 1353 | BRMS | 637 | JPFA | 1900 | NCKL | 833 | INDY | 1928 | BRIS | 1740 | KLBF | 788 | TINS | 3314 | MDKA | 2573 |
-| Top Sell | 17 | ADRO | 2284 | TKIM | 5980 | PWON | 250 | MDKA | 2897 | BUVA | 885 | MAPI | 1515 | BRPT | 1501 | DEWA | 306 | ADRO | 2255 | RATU | 5393 |
-| Top Sell | 16 | CTRA | 570 | ADRO | 2222 | UNTR | 22445 | AMMN | 3722 | EMTK | 563 | JSMR | 3035 | MAPI | 1514 | CPIN | 3125 | MDKA | 2480 | JPFA | 1961 |
-| Top Sell | 15 | CPIN | 3344 | INKP | 7478 | DEWA | 356 | ENRG | 1346 | RAJA | 4082 | BREN | 3691 | MIKA | 1706 | PTBA | 2331 | BRPT | 1332 | PGAS | 1367 |
-| Top Sell | 14 | MEDC | 1166 | UNTR | 22691 | AADI | 8073 | INDY | 2207 | INCO | 4739 | TKIM | 5893 | BREN | 3479 | MEDC | 1059 | INCO | 4205 | ITMG | 22464 |
-| Top Sell | 13 | MBMA | 525 | BUMI | 172 | KLBF | 682 | NCKL | 868 | PTRO | 4171 | TINS | 3576 | MBMA | 495 | JSMR | 2847 | JPFA | 1951 | ISAT | 1818 |
-| Top Sell | 12 | ISAT | 1782 | DEWA | 376 | ASII | 4756 | INCO | 4992 | EMAS | 6849 | INKP | 7400 | AADI | 8055 | PTRO | 3829 | PGAS | 1374 | BUVA | 768 |
-| Top Sell | 11 | EMAS | 6931 | SMGR | 1515 | ANTM | 3096 | BRPT | 1634 | NATO | 585 | BUMI | 157 | EMAS | 6964 | AMRT | 1465 | DSSA | 825 | ASII | 4547 | NCKL | 818 |
-| Top Sell | 10 | AADI | 8160 | TPIA | 2026 | BRPT | 1724 | BUMI | 164 | AMRT | 1407 | AMMN | 3602 | MBMA | 505 | MDKA | 2743 | EMAS | 6152 | DSSA | 808 | BRMS | 499 |
-| Top Sell | 9 | ESSA | 651 | DSSA | 754 | ASII | 4809 | EMAS | 7136 | MBMA | 519 | DEWA | 341 | AMMN | 3450 | TINS | 3498 | AMRT | 1423 | AMRT | 1390 | AMRT | 1391 |
-| Top Sell | 8 | DEWA | 368 | AMRT | 1400 | AADI | 7880 | TLKM | 2520 | KLBF | 715 | DSSA | 803 | PTBA | 2392 | ADRO | 2259 | MBMA | 499 | AMMN | 3126 | RAJA | 3977 |
-| Top Sell | 7 | KLBF | 729 | BUMI | 169 | NCKL | 866 | BMRI | 4260 | AADI | 8004 | AADI | 7987 | BBCA | 6047 | CUAN | 581 | BRPT | 1434 | AADI | 7831 | MAPI | 1520 |
-| Top Sell | 6 | BBNI | 3759 | ESSA | 676 | TPIA | 2091 | AMMN | 3829 | ASII | 4687 | BBNI | 3352 | INCO | 4561 | TPIA | 1817 | BBNI | 3278 | BBNI | 3192 | DSSA | 816 |
-| Top Sell | 5 | DSSA | 782 | BBNI | 3697 | BBRI | 2938 | BBNI | 3558 | TLKM | 2557 | ANTM | 2804 | ITMG | 21925 | EMAS | 6369 | TPIA | 1773 | ANTM | 2626 | AADI | 7900 |
-| Top Sell | 4 | ASII | 4835 | BMRI | 4416 | TLKM | 2596 | ANTM | 2951 | DSSA | 836 | BMRI | 4042 | ANTM | 2711 | TLKM | 2423 | AADI | 7996 | BRMS | 467 | BBNI | 3192 |
-| Top Sell | 3 | BRMS | 684 | TLKM | 2729 | BMRI | 4329 | TPIA | 1986 | ANTM | 2879 | TPIA | 1940 | BUMI | 148 | ANTM | 2704 | BBRI | 2842 | BMRI | 3868 | AMMN | 3308 |
-| Top Sell | 2 | TLKM | 2977 | BBRI | 2983 | AMMN | 3826 | DSSA | 847 | BREN | 3697 | BREN | 3683 | ASII | 4859 | BMRI | 3954 | BMRI | 3958 | BBRI | 2762 | ASII | 4610 |
-| Top Sell | 1 | TPIA | 2051 | MAPI | 1506 | DSSA | 841 | BBRI | 2903 | BMRI | 4128 | BBRI | 2870 | BBRI | 2841 | DSSA | 813 | BBCA | 6032 | BBCA | 5668 | BBRI | 2695 |
-`;
-
-        // --- WEEKLY FOREIGN (10 Kolom, Week 17 - 26) ---
-        const WEEKLY_FOREIGN_RAW = `
-| Buy 1 | BBRI | 3265 | BBRI | 3053 | BBRI | 3210 | BMRI | 4246 | MDKA | 2526 | BBCA | 5824 | BMRI | 3998 | TPIA | 1743 | BBCA | 6291 | BBCA | 6123 |
-| Buy 2 | EMAS | 9183 | BMRI | 4424 | BBCA | 6079 | PACK | 290 | BBCA | 5962 | ASII | 5097 | ASII | 4734 | ASII | 4621 | MDKA | 2839 | TINS | 3639 |
-| Buy 3 | TLKM | 2910 | EMAS | 9561 | UNTR | 28805 | DSSA | 1137 | BUMI | 178 | BBRI | 2999 | BUMI | 149 | BUMI | 143 | TINS | 3544 | INDF | 6753 |
-| Buy 4 | BULL | 539 | TLKM | 2814 | INDF | 7017 | BREN | 3459 | BMRI | 4167 | BMRI | 4144 | DEWA | 289 | BREN | 3971 | MYOR | 1893 | GGRM | 16867 |
-| Buy 5 | ANTM | 4059 | UNTR | 29740 | ADMR | 1895 | TPIA | 4622 | INCO | 5012 | TLKM | 3041 | ESSA | 597 | GOTO | 50 | GOTO | 50 | MAPI | 1516 |
-| Buy 6 | UNTR | 32136 | BBNI | 3755 | BRIS | 1895 | AMRT | 1400 | AADI | 8204 | ANTM | 2952 | BIPI | 150 | PANI | 6108 | UNVR | 1670 | UNTR | 22332 |
-| Buy 7 | ASII | 6428 | ADRO | 2460 | BNBR | 200 | AADI | 9193 | BRPT | 1736 | MDKA | 2771 | INDY | 2005 | ARCI | 931 | BREN | 4006 | ASII | 4767 |
-| Buy 8 | ENRG | 1941 | BRPT | 1950 | MINA | 380 | BDMN | 4645 | ASII | 5724 | UNTR | 23251 | MEDC | 1250 | BUVA | 689 | MARK | 899 | BUKA | 100 |
-| Buy 9 | BBTN | 1424 | ASII | 6063 | MAPI | 1384 | MAPI | 1491 | CUAN | 627 | INKP | 7684 | JPFA | 2127 | ISAT | 1820 | HRTA | 2198 | GOTO | 50 |
-| Buy 10 | DEWA | 531 | PTRO | 5382 | ISAT | 2156 | AMMN | 3865 | MBMA | 477 | UNVR | 1715 | TINS | 2985 | MEDC | 1211 | AKRA | 1229 | RAJA | 3926 |
-| Buy 11 | BRPT | 2219 | ARCI | 1633 | DEWA | 510 | BBCA | 6130 | INDY | 2409 | CPIN | 4295 | ARCI | 1024 | WIFI | 1477 | BUKA | 105 | INTP | 4121 |
-| Buy 12 | MEDC | 1742 | AADI | 11240 | HRTA | 2793 | CPIN | 4060 | MAPI | 1483 | GOTO | 50 | EXCL | 2731 | EXCL | 2523 | SSIA | 1650 | UNVR | 1719 |
-| Buy 13 | SSIA | 1723 | GOTO | 55 | BIPI | 236 | ISAT | 2256 | DEWA | 370 | JPFA | 2495 | SMGR | 1680 | MARK | 794 | ICBP | 6652 | MARK | 939 |
-| Buy 14 | BDMN | 3954 | ITMG | 25853 | TINS | 3839 | GGRM | 16817 | BUVA | 786 | NCKL | 865 | LSIP | 1257 | CDIA | 653 | MLBI | 6173 | JSMR | 2884 |
-| Buy 15 | BUVA | 1284 | INDF | 6828 | PNLF | 270 | WBSA | 1219 | PTRO | 4038 | MIKA | 1648 | PTBA | 2630 | MDKA | 2571 | DMAS | 155 | WIFI | 1646 |
-| Buy 16 | BRMS | 885 | SSIA | 1704 | FORE | 1014 | BRIS | 1848 | ARCI | 1176 | BUVA | 705 | PWON | 277 | WBSA | 703 | GGRM | 16329 | SMGR | 1490 |
-| Buy 17 | PGAS | 1925 | ELSA | 817 | ARCI | 1532 | EXCL | 3051 | JPFA | 2587 | PTBA | 2807 | PGEO | 823 | BFIN | 637 | INET | 207 | MAPA | 621 |
-| Buy 18 | ARCI | 1598 | TAPG | 2086 | JPFA | 2576 | LSIP | 1521 | EXCL | 2809 | INCO | 5062 | ADMR | 1391 | FILM | 1667 | BIRD | 1611 | ICBP | 6638 |
-| Sell 18 | KLBF | 874 | AMMN | 4769 | TAPG | 1862 | IMPC | 1801 | MAPI | 1496 | ANTM | 2757 | ENRG | 1351 | BBNI | 3722 | EMTK | 542 | DEWA | 336 |
-| Sell 17 | TAPG | 1991 | ERAA | 410 | AADI | 10268 | MDKA | 2826 | CBRE | 802 | BULL | 401 | BRMS | 534 | PWON | 247 | BBRI | 2978 | KLBF | 733 |
-| Sell 16 | MBMA | 704 | BNBR | 213 | INCO | 6120 | INDY | 3149 | ISAT | 2161 | TPIA | 1883 | PTRO | 4412 | TKIM | 5091 | KLBF | 719 | AMRT | 1422 |
-| Sell 15 | ARKO | 10197 | TPIA | 5975 | INKP | 8862 | AMRT | 1407 | ISAT | 2155 | MAPI | 1492 | SUPA | 578 | MAPI | 1501 | AMRT | 1372 | INCO | 4740 |
-| Sell 14 | SINI | 13850 | ESSA | 873 | EMAS | 7943 | IRSX | 391 | ENRG | 1376 | AADI | 7975 | IMPC | 1481 | AMRT | 1372 | EMAS | 7242 | MBMA | 508 |
-| Sell 13 | RATU | 6436 | BUVA | 1101 | PTRO | 5156 | TLKM | 3051 | AADI | 8329 | EMAS | 7248 | AKRA | 1232 | EMAS | 7242 | TPIA | 2053 | BUMI | 154 |
-| Sell 12 | IMPC | 2246 | KLBF | 883 | BNBR | 171 | BIPI | 194 | AKRA | 1258 | BREN | 3970 | INKP | 7301 | TPIA | 2053 | ESSA | 647 | TLKM | 2501 |
-| Sell 11 | CDIA | 1048 | BREN | 4651 | ADRO | 2502 | ICBP | 6738 | ADRO | 2302 | ADRO | 2243 | ICBP | 6262 | ESSA | 647 | BRMS | 664 | BBNI | 3405 |
-| Sell 10 | INCO | 6857 | BMRI | 4563 | BUMI | 215 | TKIM | 6741 | EMAS | 7559 | BBCA | 5403 | CUAN | 706 | BRMS | 664 | DEWA | 373 | AADI | 8034 |
-| Sell 9 | EMAS | 8554 | INCO | 5903 | AALI | 6936 | INDF | 6918 | AMRT | 1335 | AMMN | 3288 | DEWA | 373 | BMRI | 4392 | NCKL | 878 | EMAS | 6777 |
-| Sell 8 | BIPI | 248 | ADRO | 2510 | BBNI | 3828 | PGAS | 1821 | DSSA | 480 | TLKM | 2887 | MBMA | 456 | BMRI | 4392 | ASII | 4824 | AMMN | 3565 |
-| Sell 7 | BULL | 526 | ASII | 5888 | BIPI | 206 | MEDC | 1421 | AMMN | 3240 | INDF | 6345 | ITMG | 22117 | NCKL | 878 | AADI | 7984 | BREN | 3674 |
-| Sell 6 | MDKA | 3345 | BUMI | 233 | BRPT | 2148 | PACK | 327 | BUMI | 173 | BBNI | 3483 | BBNI | 3338 | ASII | 4824 | BUMI | 174 | TPIA | 1918 |
-| Sell 5 | DEWA | 496 | ANTM | 3776 | CUAN | 944 | INDF | 6697 | BRMS | 599 | BRPT | 1848 | MAPI | 1489 | AADI | 7984 | EMAS | 6972 | ANTM | 2810 |
-| Sell 4 | BUMI | 229 | BRPT | 2189 | KLBF | 881 | BREN | 2842 | BRPT | 1799 | DSSA | 652 | EMAS | 6972 | BUMI | 174 | AMMN | 3838 | BMRI | 4057 |
-| Sell 3 | GOTO | 50 | ANTM | 3601 | TPIA | 2525 | AMRT | 1175 | AMMN | 3514 | BMRI | 4009 | AMMN | 3838 | TLKM | 2755 | BBRI | 2873 | BBRI | 2873 |
-| Sell 2 | TLKM | 2938 | ANTM | 3076 | CUAN | 581 | BBRI | 2886 | BBCA | 5257 | TLKM | 2755 | DSSA | 833 | BBCA | 6123 | DSSA | 830 | DSSA | 830 |
-| Sell 1 | BBRI | 3194 | BBRI | 3050 | BREN | 3130 | TPIA | 1525 | BBRI | 2757 | DSSA | 833 | BBCA | 6123 | DSSA | 830 | BBCA | 6092 | BBCA | 6092 |
-`;
-
-        // ==========================================
-        // 2. PALET WARNA BERSAMA
-        // ==========================================
-        const COLORS = [
-            '#f87171', '#60a5fa', '#34d399', '#fbbf24', '#a78bfa',
-            '#f472b6', '#2dd4bf', '#fb923c', '#818cf8', '#e879f9',
-            '#4ade80', '#38bdf8', '#c084fc', '#facc15', '#94a3b8',
-            '#ffed4a', '#ff7675', '#74b9ff', '#55efc4', '#a29bfe',
-            '#ff9ff3', '#feca57', '#ff6b6b', '#48dbfb', '#1dd1a1'
-        ];
-
-        function getColor(ticker) {
-            let hash = 0;
-            for (let i = 0; i < ticker.length; i++) {
-                hash = ticker.charCodeAt(i) + ((hash << 5) - hash);
-            }
-            return COLORS[Math.abs(hash) % COLORS.length];
+        function padZero(num) {
+            return num < 10 ? '0' + num : num;
         }
 
-        // ==========================================
-        // 3. FUNGSI PARSING & EXTRACT HARGA
-        // ==========================================
-        
-        // --- 3A. Parsing Retail ---
-        function parseRetailData() {
-            const dates = ['18 Jun', '19 Jun', '22 Jun', '23 Jun', '24 Jun', '25 Jun', '27 Jun', '29 Jun', '30 Jun', '02 Jul'];
-            const seriesMap = {};
-            if (!RETAIL_RAW.trim()) return { dates, series: [] };
-            const lines = RETAIL_RAW.trim().split('\n');
-
-            lines.forEach((line) => {
-                if (!line.includes('| Buy') && !line.includes('| Sell')) return;
-                const cols = line.split('|').map(c => c.trim());
-                if (cols.length < 3) return;
-                
-                const typeText = cols[1];
-                const matchType = typeText.match(/(Buy|Sell)\s+(\d+)/);
-                if (!matchType) return;
-                
-                const type = matchType[1];
-                const rank = parseInt(matchType[2], 10);
-                let r = (type === 'Buy') ? rank - 1 : 37 - rank; 
-
-                const tickerColIndices = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20];
-                tickerColIndices.forEach((colIdx, dIndex) => {
-                    const ticker = cols[colIdx];
-                    const price = cols[colIdx + 1]; 
-                    
-                    if (ticker && ticker !== '-' && ticker.length > 0) {
-                        if (!seriesMap[ticker]) seriesMap[ticker] = { ticker, points: [] };
-                        seriesMap[ticker].points.push({ d: dIndex, r: r, price: price });
-                    }
-                });
-            });
-
-            const seriesArray = Object.values(seriesMap);
-            seriesArray.forEach(series => series.points.sort((a, b) => a.d - b.d));
-            return { dates, series: seriesArray };
+        function getISOWeekNumber(d) {
+            var date = new Date(d.getTime());
+            date.setHours(0, 0, 0, 0);
+            date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
+            var week1 = new Date(date.getFullYear(), 0, 4);
+            return 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
         }
 
-        // --- 3B. Parsing Foreign ---
-        function parseForeignData() {
-            const dates = ['18 Jun', '19 Jun', '22 Jun', '23 Jun', '24 Jun', '25 Jun', '26 Jun', '29 Jun', '30 Jun', '02 Jul'];
-            const seriesMap = {};
-            if (!FOREIGN_RAW.trim()) return { dates, series: [] };
-            const lines = FOREIGN_RAW.trim().split('\n');
+        var dayNames = ['Mi', 'Se', 'Sl', 'Ra', 'Ka', 'Ju', 'Sa'];
 
-            lines.forEach((line) => {
-                if (!line.includes('| Top Buy |') && !line.includes('| Top Sell |')) return;
-                const cols = line.split('|').map(c => c.trim());
-                if (cols.length < 3) return;
-                
-                const type = cols[1]; 
-                const rank = parseInt(cols[2], 10); 
-                if (isNaN(rank)) return;
+        function updateClock() {
+            var now = new Date();
 
-                let r = (type === 'Top Buy') ? rank - 1 : 37 - rank; 
+            var hours = padZero(now.getHours());
+            var minutes = padZero(now.getMinutes());
+            document.getElementById('clock').innerHTML = hours + ':' + minutes;
 
-                const tickerColIndices = [3, 5, 7, 9, 11, 13, 15, 17, 19, 21];
-                tickerColIndices.forEach((colIdx, dIndex) => {
-                    const ticker = cols[colIdx];
-                    const price = cols[colIdx + 1]; 
-                    
-                    if (ticker && ticker !== '-' && ticker.length > 0) {
-                        if (!seriesMap[ticker]) seriesMap[ticker] = { ticker, points: [] };
-                        seriesMap[ticker].points.push({ d: dIndex, r: r, price: price });
-                    }
-                });
-            });
+            var year = now.getFullYear();
+            var month = padZero(now.getMonth() + 1); 
+            var date = padZero(now.getDate());
+            document.getElementById('date').innerHTML = year + '.' + month + '.' + date;
 
-            const seriesArray = Object.values(seriesMap);
-            seriesArray.forEach(series => series.points.sort((a, b) => a.d - b.d));
-            return { dates, series: seriesArray };
+            var weekNum = getISOWeekNumber(now);
+            document.getElementById('week').innerHTML = 'W' + weekNum;
+
+            var dayName = dayNames[now.getDay()];
+            document.getElementById('day').innerHTML = dayName;
+
+            setTimeout(updateClock, 1000);
         }
 
-        // --- 3C. Parsing Weekly Foreign ---
-        function parseWeeklyForeignData() {
-            const dates = ['Week 17', 'Week 18', 'Week 19', 'Week 20', 'Week 21', 'Week 22', 'Week 23', 'Week 24', 'Week 25', 'Week 26'];
-            const seriesMap = {};
-            if (!WEEKLY_FOREIGN_RAW.trim()) return { dates, series: [] };
-            const lines = WEEKLY_FOREIGN_RAW.trim().split('\n');
+        function generateCalendar() {
+            var now = new Date();
+            var year = now.getFullYear();
+            var month = now.getMonth();
+            var todayDate = now.getDate();
 
-            lines.forEach((line) => {
-                if (!line.includes('| Buy') && !line.includes('| Sell')) return;
-                const cols = line.split('|').map(c => c.trim());
-                if (cols.length < 3) return;
-                
-                const typeText = cols[1]; 
-                const matchType = typeText.match(/(Buy|Sell)\s+(\d+)/);
-                if (!matchType) return;
-                
-                const type = matchType[1];
-                const rank = parseInt(matchType[2], 10);
-                let r = (type === 'Buy') ? rank - 1 : 37 - rank; 
+            var firstDayOfMonth = new Date(year, month, 1);
+            var daysInMonth = new Date(year, month + 1, 0).getDate();
 
-                const tickerColIndices = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20];
-                tickerColIndices.forEach((colIdx, dIndex) => {
-                    const ticker = cols[colIdx];
-                    const price = cols[colIdx + 1]; 
-                    
-                    if (ticker && ticker !== '-' && ticker.length > 0) {
-                        if (!seriesMap[ticker]) seriesMap[ticker] = { ticker, points: [] };
-                        seriesMap[ticker].points.push({ d: dIndex, r: r, price: price });
-                    }
-                });
-            });
+            var startDay = (firstDayOfMonth.getDay() + 6) % 7;
 
-            const seriesArray = Object.values(seriesMap);
-            seriesArray.forEach(series => series.points.sort((a, b) => a.d - b.d));
-            return { dates, series: seriesArray };
-        }
+            var tbody = document.getElementById('calendar-body');
+            tbody.innerHTML = ''; 
 
-        // ==========================================
-        // 4. FUNGSI RENDER CHART BERSAMA
-        // ==========================================
-        function buildChart(containerId, titleText, data, svgWidth = 1900) {
-            const height = 1800;
-            const margin = { top: 100, right: 140, bottom: 100, left: 140 };
-            const innerWidth = svgWidth - margin.left - margin.right;
-            const innerHeight = height - margin.top - margin.bottom;
-            
-            const totalRanks = 37; 
-            let activeTicker = null;
-            const numDates = data.dates.length;
+            var dateCounter = 1;
+            var rowCount = 0;
 
-            function getX(dateIndex) {
-                return numDates > 1 ? (dateIndex / (numDates - 1)) * innerWidth : innerWidth / 2;
-            }
+            while (dateCounter <= daysInMonth) {
+                var tr = document.createElement('tr');
 
-            function getY(rankIndex) {
-                return (rankIndex / (totalRanks - 1)) * innerHeight;
-            }
+                var sampleDateForRow = new Date(year, month, dateCounter);
+                var weekNum = getISOWeekNumber(sampleDateForRow);
 
-            const svgNamespace = "http://www.w3.org/2000/svg";
-            const svg = document.createElementNS(svgNamespace, "svg");
-            svg.setAttribute("viewBox", `0 0 ${svgWidth} ${height}`);
-            
-            // Background
-            const bgRect = document.createElementNS(svgNamespace, "rect");
-            bgRect.setAttribute("x", 0);
-            bgRect.setAttribute("y", 0);
-            bgRect.setAttribute("width", svgWidth);
-            bgRect.setAttribute("height", height);
-            bgRect.setAttribute("fill", "#111111"); 
-            bgRect.classList.add("svg-background");
-            bgRect.addEventListener("click", () => handleSelect(null));
-            svg.appendChild(bgRect);
-            
-            // Judul Chart
-            const title = document.createElementNS(svgNamespace, "text");
-            title.setAttribute("x", svgWidth / 2);
-            title.setAttribute("y", 50);
-            title.setAttribute("fill", "#fbbf24");
-            title.setAttribute("font-size", "28");
-            title.setAttribute("font-weight", "bold");
-            title.setAttribute("text-anchor", "middle");
-            title.style.pointerEvents = "none";
-            title.textContent = titleText;
-            svg.appendChild(title);
+                var tdWeek = document.createElement('td');
+                tdWeek.className = 'week-num';
+                tdWeek.innerHTML = weekNum;
+                tr.appendChild(tdWeek);
 
-            const gMain = document.createElementNS(svgNamespace, "g");
-            gMain.setAttribute("transform", `translate(${margin.left}, ${margin.top})`);
-            svg.appendChild(gMain);
+                for (var i = 0; i < 7; i++) {
+                    var td = document.createElement('td');
 
-            // GRID & LABELS
-            for (let i = 0; i < totalRanks; i++) {
-                const line = document.createElementNS(svgNamespace, "line");
-                line.setAttribute("x1", 0);
-                line.setAttribute("y1", getY(i));
-                line.setAttribute("x2", innerWidth);
-                line.setAttribute("y2", getY(i));
-                line.setAttribute("stroke", "#333");
-                line.setAttribute("stroke-width", "0.5");
-                line.style.pointerEvents = "none";
-                
-                if (i === 18) line.setAttribute("stroke-dasharray", "6,6");
-                gMain.appendChild(line);
-
-                let labelText = '';
-                if (i < 18) {
-                    labelText = `Buy ${i + 1}`;
-                } else if (i === 18) {
-                    labelText = ''; 
-                } else {
-                    const reverseIndex = 37 - i; 
-                    labelText = `Sell ${reverseIndex}`;
-                }
-
-                if (labelText) {
-                    const textLeft = document.createElementNS(svgNamespace, "text");
-                    textLeft.setAttribute("x", -30);
-                    textLeft.setAttribute("y", getY(i));
-                    textLeft.setAttribute("fill", "#a1a1aa");
-                    textLeft.setAttribute("font-size", "14");
-                    textLeft.setAttribute("text-anchor", "end");
-                    textLeft.setAttribute("dominant-baseline", "middle");
-                    textLeft.style.pointerEvents = "none";
-                    textLeft.textContent = labelText;
-                    gMain.appendChild(textLeft);
-
-                    const textRight = document.createElementNS(svgNamespace, "text");
-                    textRight.setAttribute("x", innerWidth + 30);
-                    textRight.setAttribute("y", getY(i));
-                    textRight.setAttribute("fill", "#a1a1aa");
-                    textRight.setAttribute("font-size", "14");
-                    textRight.setAttribute("text-anchor", "start");
-                    textRight.setAttribute("dominant-baseline", "middle");
-                    textRight.style.pointerEvents = "none";
-                    textRight.textContent = labelText;
-                    gMain.appendChild(textRight);
-                }
-            }
-
-            // Garis Neutral Zone
-            const neutralLine = document.createElementNS(svgNamespace, "line");
-            neutralLine.setAttribute("x1", -100);
-            neutralLine.setAttribute("y1", getY(18));
-            neutralLine.setAttribute("x2", innerWidth + 100);
-            neutralLine.setAttribute("y2", getY(18));
-            neutralLine.setAttribute("stroke", "#888");
-            neutralLine.setAttribute("stroke-width", "2.5");
-            neutralLine.setAttribute("stroke-dasharray", "10,6");
-            neutralLine.style.pointerEvents = "none";
-            gMain.appendChild(neutralLine);
-
-            const neutralText = document.createElementNS(svgNamespace, "text");
-            neutralText.setAttribute("x", innerWidth + 50);
-            neutralText.setAttribute("y", getY(18));
-            neutralText.setAttribute("fill", "#aaa");
-            neutralText.setAttribute("font-size", "16");
-            neutralText.setAttribute("font-weight", "bold");
-            neutralText.setAttribute("dominant-baseline", "middle");
-            neutralText.style.pointerEvents = "none";
-            neutralText.textContent = "NEUTRAL ZONE";
-            gMain.appendChild(neutralText);
-
-            // Date X Axis
-            data.dates.forEach((date, i) => {
-                const textDate = document.createElementNS(svgNamespace, "text");
-                textDate.setAttribute("x", getX(i));
-                textDate.setAttribute("y", innerHeight + 40);
-                textDate.setAttribute("fill", "#ddd");
-                textDate.setAttribute("font-size", "16");
-                textDate.setAttribute("font-weight", "bold");
-                textDate.setAttribute("text-anchor", "middle");
-                textDate.style.pointerEvents = "none";
-                textDate.textContent = date;
-                gMain.appendChild(textDate);
-            });
-
-            const elementRefs = {};
-
-            // Layering
-            const gLinesLayer = document.createElementNS(svgNamespace, "g");
-            gMain.appendChild(gLinesLayer);
-
-            const gPointsLayer = document.createElementNS(svgNamespace, "g");
-            gPointsLayer.style.pointerEvents = "none";
-            gMain.appendChild(gPointsLayer);
-
-            // Render Data Line & Points
-            if (data.series && data.series.length > 0) {
-                data.series.forEach(series => {
-                    const color = getColor(series.ticker);
-                    const pathData = series.points.map((p, index) => 
-                        `${index === 0 ? 'M' : 'L'} ${getX(p.d)} ${getY(p.r)}`
-                    ).join(' ');
-
-                    elementRefs[series.ticker] = { lines: [], points: [], texts: [], priceTexts: [] };
-
-                    const gLineGroup = document.createElementNS(svgNamespace, "g");
-                    
-                    const hitbox = document.createElementNS(svgNamespace, "path");
-                    hitbox.setAttribute("d", pathData);
-                    hitbox.setAttribute("fill", "none");
-                    hitbox.setAttribute("stroke", "transparent");
-                    hitbox.setAttribute("stroke-width", "25");
-                    hitbox.classList.add("hitbox");
-                    gLineGroup.appendChild(hitbox);
-
-                    const visibleLine = document.createElementNS(svgNamespace, "path");
-                    visibleLine.setAttribute("d", pathData);
-                    visibleLine.setAttribute("fill", "none");
-                    visibleLine.setAttribute("stroke", color);
-                    visibleLine.setAttribute("stroke-width", "2");
-                    visibleLine.setAttribute("opacity", "0.85");
-                    visibleLine.classList.add("series-line");
-                    gLineGroup.appendChild(visibleLine);
-                    elementRefs[series.ticker].lines.push(visibleLine);
-
-                    gLineGroup.addEventListener("click", (e) => {
-                        e.stopPropagation(); 
-                        if (activeTicker === series.ticker) {
-                            handleSelect(null);
-                        } else {
-                            handleSelect(series.ticker);
+                    if (rowCount === 0 && i < startDay) {
+                        td.innerHTML = '';
+                    } else if (dateCounter > daysInMonth) {
+                        td.innerHTML = '';
+                    } else {
+                        if (i === 6) { 
+                            td.className = 'sunday';
                         }
-                    });
 
-                    gLinesLayer.appendChild(gLineGroup);
-
-                    const gPointGroup = document.createElementNS(svgNamespace, "g");
-                    
-                    series.points.forEach(p => {
-                        const circle = document.createElementNS(svgNamespace, "circle");
-                        circle.setAttribute("cx", getX(p.d));
-                        circle.setAttribute("cy", getY(p.r));
-                        circle.setAttribute("r", "4");
-                        circle.setAttribute("fill", color);
-                        circle.setAttribute("opacity", "0.85");
-                        circle.classList.add("series-point");
-                        gPointGroup.appendChild(circle);
-                        elementRefs[series.ticker].points.push(circle);
-
-                        const textTicker = document.createElementNS(svgNamespace, "text");
-                        textTicker.setAttribute("x", getX(p.d) - 12);
-                        textTicker.setAttribute("y", getY(p.r));
-                        textTicker.setAttribute("fill", "#e4e4e7");
-                        textTicker.setAttribute("font-size", "14");
-                        textTicker.setAttribute("text-anchor", "end");
-                        textTicker.setAttribute("dominant-baseline", "middle");
-                        textTicker.setAttribute("stroke", "#111");
-                        textTicker.setAttribute("stroke-width", "4");
-                        textTicker.setAttribute("paint-order", "stroke");
-                        textTicker.setAttribute("opacity", "0.85");
-                        textTicker.classList.add("series-label");
-                        textTicker.textContent = series.ticker;
-                        gPointGroup.appendChild(textTicker);
-                        elementRefs[series.ticker].texts.push(textTicker);
-
-                        // --- FITUR BARU: TEKS HARGA DI ATAS TITIK ---
-                        const priceText = document.createElementNS(svgNamespace, "text");
-                        priceText.setAttribute("x", getX(p.d));
-                        priceText.setAttribute("y", getY(p.r) - 15); // Offset ke atas
-                        priceText.setAttribute("fill", "#10b981"); // Warna hijau cerah
-                        priceText.setAttribute("font-size", "13");
-                        priceText.setAttribute("font-weight", "bold");
-                        priceText.setAttribute("text-anchor", "middle");
-                        priceText.setAttribute("stroke", "#111"); 
-                        priceText.setAttribute("stroke-width", "3");
-                        priceText.setAttribute("paint-order", "stroke");
-                        priceText.setAttribute("opacity", "0"); // Default tersembunyi
-                        priceText.classList.add("series-price");
-                        priceText.textContent = p.price; // Set nilai harga
-                        gPointGroup.appendChild(priceText);
-                        elementRefs[series.ticker].priceTexts.push(priceText);
-                    });
-
-                    gPointsLayer.appendChild(gPointGroup);
-                });
-            }
-
-            document.getElementById(containerId).appendChild(svg);
-
-            function handleSelect(selectedTicker) {
-                activeTicker = selectedTicker;
-
-                if (!data.series) return;
-
-                data.series.forEach(series => {
-                    let isSelected = false;
-                    let opacity = "0.85";
-                    
-                    if (activeTicker !== null) {
-                        isSelected = (activeTicker === series.ticker);
-                        opacity = isSelected ? "1" : "0.1";
+                        if (dateCounter === todayDate && month === new Date().getMonth() && year === new Date().getFullYear()) {
+                            td.className += (td.className === '' ? '' : ' ') + 'today';
+                            td.innerHTML = '<span>' + dateCounter + '</span>';
+                        } else {
+                            td.innerHTML = dateCounter;
+                        }
+                        dateCounter++;
                     }
-
-                    const lineWidth = isSelected ? "6" : "2";
-                    const circleRadius = isSelected ? "7" : "4";
-                    const textColor = isSelected ? "#ffffff" : "#e4e4e7";
-                    const textWeight = isSelected ? "bold" : "normal";
-
-                    const refs = elementRefs[series.ticker];
-                    
-                    refs.lines.forEach(el => {
-                        el.setAttribute("opacity", opacity);
-                        el.setAttribute("stroke-width", lineWidth);
-                        if (isSelected) el.parentNode.parentNode.appendChild(el.parentNode);
-                    });
-
-                    refs.points.forEach(el => {
-                        el.setAttribute("opacity", opacity);
-                        el.setAttribute("r", circleRadius);
-                    });
-
-                    refs.texts.forEach(el => {
-                        el.setAttribute("opacity", opacity);
-                        el.setAttribute("fill", textColor);
-                        el.setAttribute("font-weight", textWeight);
-                    });
-
-                    // --- FITUR BARU: MENAMPILKAN HARGA KETIKA DIKLIK ---
-                    refs.priceTexts.forEach(el => {
-                        el.setAttribute("opacity", isSelected ? "1" : "0");
-                    });
-                    
-                    if(isSelected && refs.points.length > 0) {
-                         const group = refs.points[0].parentNode;
-                         group.parentNode.appendChild(group);
-                    }
-                });
+                    tr.appendChild(td);
+                }
+                tbody.appendChild(tr);
+                rowCount++;
             }
         }
 
-        // ==========================================
-        // 5. INISIALISASI SEMUA CHART
-        // ==========================================
-        
-        buildChart("retailChartContainer", "Gabungan Daily Retail Flow Rank (Top Buy & Top Sell)", parseRetailData(), 1900);
-        buildChart("foreignChartContainer", "Gabungan Foreign Flow Rank (Top Buy & Top Sell)", parseForeignData(), 1900);
-        buildChart("weeklyForeignChartContainer", "Gabungan Weekly Foreign Flow Rank (Top Buy & Top Sell)", parseWeeklyForeignData(), 1900);
+        updateClock();
+        generateCalendar();
+
+        setInterval(function() {
+            var now = new Date();
+            if (now.getHours() === 0 && now.getMinutes() === 0) {
+                generateCalendar();
+            }
+        }, 60000); 
 
     </script>
 </body>
