@@ -11,18 +11,25 @@
             background-color: #111111;
             font-family: sans-serif;
             color: #ffffff;
+            /* Webkit Flexbox untuk iOS lawas */
+            display: -webkit-flex;
             display: flex;
+            -webkit-flex-direction: column;
             flex-direction: column;
+            -webkit-align-items: center;
             align-items: center;
             min-height: 100vh;
             overflow: auto;
             padding: 2rem;
-            gap: 4rem;
         }
 
         .chart-container {
             width: 100%;
-            filter: drop-shadow(0 25px 25px rgb(0 0 0 / 0.15));
+            /* Webkit Filter Drop Shadow */
+            -webkit-filter: drop-shadow(0 25px 25px rgba(0, 0, 0, 0.15));
+            filter: drop-shadow(0 25px 25px rgba(0, 0, 0, 0.15));
+            /* Pengganti property 'gap' yang tidak didukung iOS 9 */
+            margin-bottom: 4rem; 
         }
 
         #retailChartContainer, #foreignChartContainer, #weeklyForeignChartContainer { max-width: 1900px; }
@@ -35,6 +42,7 @@
         }
 
         .series-line, .series-point, .series-label, .series-price {
+            -webkit-transition: all 0.2s ease-in-out;
             transition: all 0.2s ease-in-out;
         }
 
@@ -55,136 +63,133 @@
 
     <script>
         // ==========================================
-        // 1. DATA MENTAH (TERSTRUKTUR ULANG PRESISI)
+        // 1. DATA MENTAH (FORMAT ARRAY ES5 UNTUK MENCEGAH ERROR MULTILINE)
         // ==========================================
         
-        // --- DATA RETAIL (29 Jun - 09 Jul) ---
-        const RETAIL_RAW = `
-Buy 1;BBCA;6022;BBCA;5670;BBRI;2696;BBRI;2700;BBRI;2720;BMRI;3991;BREN;3418;MAPI;1518;BACH;598
-Buy 2;BBRI;2842;BBRI;2772;BMRI;3824;BBNI;3193;MAPI;1518;ANTM;2972;TLKM;2455;EMMI;558;BBRI;2758
-Buy 3;BMRI;3960;BMRI;3877;TPIA;1713;DSSA;816;BRPT;1530;DSSA;820;BUMI;141;BRMS;489;AADI;8098
-Buy 4;BBNI;3281;ANTM;2622;BBNI;3116;JPFA;1960;TPIA;1804;MAPI;1518;BRMS;515;BBNI;3415;IECX;1660
-Buy 5;TPIA;1769;BBNI;3203;BRMS;486;BRMS;499;ISAT;1963;CMRY;4320;EMAS;5706;MDKA;2620;ENRG;1251
-Buy 6;MBMA;499;ESSA;531;BBCA;5669;MDKA;2582;BBNI;3250;AMMN;3498;ANTM;2940;AMMN;3420;MDKA;2580
-Buy 7;AMRT;1421;ASII;4555;ASII;4573;RAJA;3968;CPIN;3101;BBNI;3255;AADI;8035;ANTM;2845;COCO;191
-Buy 8;IMPC;1378;BRMS;465;DSSA;819;MTEL;494;INDF;6909;BREN;3413;MDKA;2681;ERAA;344;MAPI;1520
-Buy 9;ESSA;580;AMRT;1393;DEWA;289;PGAS;1368;BIPI;124;EMAS;5865;BNBR;102;SINI;10950;BFIN;783
-Buy 10;JSMR;2850;BUMI;134;ITMG;22288;EMAS;5715;CMRY;4356;BRPT;1507;DEWA;314;NCKL;830;ADRO;2291
-Buy 11;ERAA;356;JPFA;1949;MBMA;492;PTBA;2284;EMAS;5924;TLKM;2484;BUVA;871;ENRG;1158;BNBR;89
-Buy 12;MEDC;1060;INCO;4232;BNBR;88;MAPI;1521;KLBF;759;COCO;327;INKP;7290;CPIN;3086;BRPT;1560
-Buy 13;MDKA;2678;PGAS;1375;MTEL;503;NCKL;820;DSSA;837;CPIN;3068;AMRT;1382;BUVA;842;INCO;4584
-Buy 14;ANTM;2749;NCKL;790;MDKA;2542;MBMA;516;INKP;7068;ISAT;1902;NCKL;841;BFIN;754;BUMI;141
-Buy 15;PTBA;2333;INTP;4138;VKTR;465;BBTN;1086;MTEL;490;TINS;3452;LSIP;1261;AMRT;1396;JPFA;1973
-Buy 16;INDF;6711;MTEL;521;PANI;5720;JSMR;2665;CUAN;622;BULL;332;KIJA;134;JPFA;2043;PGAS;1403
-Buy 17;INTP;4131;AMMN;3134;PGAS;1367;INKP;6977;NCKL;857;SMGR;1401;MTEL;494;CUAN;612;ASII;4802
-Buy 18;MTEL;488;ITMG;21977;INKP;7028;TOWR;369;VKTR;535;BRMS;515;RAJA;4122;PANI;5924;BREN;3263
-Sell 18;BBTN;1115;INDF;6662;HRTA;1675;MYOR;1760;AMRT;1395;INCO;4584;INCO;4593;MMIX;575;ICBP;6605
-Sell 17;MYOR;1871;BULL;321;BRPT;1390;INDF;6778;PTBA;2310;ENRG;1116;BSML;523;RMKE;2140;EMAS;5574
-Sell 16;BREN;3252;IMPC;1369;MEDC;1057;AMMN;3304;COCO;276;UNTR;23795;ELSA;589;PSAB;405;AMMN;3460
-Sell 15;BULL;346;UNVR;1799;PTBA;2279;VKTR;508;ESSA;544;BFIN;751;INTP;4417;GOTO;50;KLBF;728
-Sell 14;UNVR;1766;PANI;5862;MAPI;1520;ITMG;22465;ICBP;6953;MINA;276;JPFA;2060;PADI;88;BBNI;3378
-Sell 13;BUVA;740;EMAS;5655;ANTM;2610;ADRO;2291;TAPG;1549;CUAN;611;PTRO;4008;BAPA;417;PACK;210
-Sell 12;KLBF;795;CUAN;542;ISAT;1785;INDY;1875;JPFA;2011;MDKA;2719;TPIA;1890;ITMG;22740;ADMR;1417
-Sell 11;DSSA;829;SSIA;1453;AMMN;3223;TLKM;2461;BBTN;1134;PGAS;200;CPIN;3127;UNTR;24270;AMRT;1419
-Sell 10;CUAN;572;TPIA;1666;INDF;6628;TINS;3388;BUMI;139;BBTN;1158;BBTN;1193;BUMI;137;ANTM;2814
-Sell 9;ADRO;2268;MYOR;1831;EMAS;5566;AMRT;1397;TLKM;2511;MEDC;1109;GGRM;16515;INCO;4582;TLKM;2487
-Sell 8;TINS;3475;BREN;3116;AMRT;1380;BNBR;102;DEWA;313;AKRA;1287;AMMN;3571;TPIA;1825;MEDC;1179
-Sell 7;AMMN;3318;DSSA;805;BIPI;114;MEDC;1065;BREN;3437;RAJA;4064;KLBF;744;KLBF;741;CUAN;607
-Sell 6;ENRG;1105;ICBP;6765;TINS;3339;ANTM;2743;AMMN;3459;KLBF;744;MAPI;1520;BMRI;4015;DSSA;778
-Sell 5;BUMI;141;CPIN;3286;RAJA;3942;UNTR;22543;ASII;4764;ASII;4749;CUAN;625;ASII;4913;BMRI;4000
-Sell 4;MAPI;1511;INKP;7067;BREN;3278;BMRI;3921;ANTM;2919;BBRI;2730;BRPT;1559;BBRI;2805;EMMI;487
-Sell 3;AADI;8006;UNTR;22431;CUAN;587;BRPT;1496;UNTR;23604;BUVA;828;BBNI;3391;TLKM;2498;TPIA;1823
-Sell 2;PGAS;1439;AADI;7832;TPIA;1766;TPIA;1766;BMRI;4015;TPIA;1846;BMRI;4040;BRPT;1531;RAJA;4198
-Sell 1;TLKM;2425;TLKM;2367;RATU;5274;BBCA;5807;BBCA;6039;BBCA;6106;BBRI;2844;BBCA;6274;BBCA;6148
-`;
+        var RETAIL_RAW = [
+            "Buy 1;BBCA;6022;BBCA;5670;BBRI;2696;BBRI;2700;BBRI;2720;BMRI;3991;BREN;3418;MAPI;1518;BACH;598",
+            "Buy 2;BBRI;2842;BBRI;2772;BMRI;3824;BBNI;3193;MAPI;1518;ANTM;2972;TLKM;2455;EMMI;558;BBRI;2758",
+            "Buy 3;BMRI;3960;BMRI;3877;TPIA;1713;DSSA;816;BRPT;1530;DSSA;820;BUMI;141;BRMS;489;AADI;8098",
+            "Buy 4;BBNI;3281;ANTM;2622;BBNI;3116;JPFA;1960;TPIA;1804;MAPI;1518;BRMS;515;BBNI;3415;IECX;1660",
+            "Buy 5;TPIA;1769;BBNI;3203;BRMS;486;BRMS;499;ISAT;1963;CMRY;4320;EMAS;5706;MDKA;2620;ENRG;1251",
+            "Buy 6;MBMA;499;ESSA;531;BBCA;5669;MDKA;2582;BBNI;3250;AMMN;3498;ANTM;2940;AMMN;3420;MDKA;2580",
+            "Buy 7;AMRT;1421;ASII;4555;ASII;4573;RAJA;3968;CPIN;3101;BBNI;3255;AADI;8035;ANTM;2845;COCO;191",
+            "Buy 8;IMPC;1378;BRMS;465;DSSA;819;MTEL;494;INDF;6909;BREN;3413;MDKA;2681;ERAA;344;MAPI;1520",
+            "Buy 9;ESSA;580;AMRT;1393;DEWA;289;PGAS;1368;BIPI;124;EMAS;5865;BNBR;102;SINI;10950;BFIN;783",
+            "Buy 10;JSMR;2850;BUMI;134;ITMG;22288;EMAS;5715;CMRY;4356;BRPT;1507;DEWA;314;NCKL;830;ADRO;2291",
+            "Buy 11;ERAA;356;JPFA;1949;MBMA;492;PTBA;2284;EMAS;5924;TLKM;2484;BUVA;871;ENRG;1158;BNBR;89",
+            "Buy 12;MEDC;1060;INCO;4232;BNBR;88;MAPI;1521;KLBF;759;COCO;327;INKP;7290;CPIN;3086;BRPT;1560",
+            "Buy 13;MDKA;2678;PGAS;1375;MTEL;503;NCKL;820;DSSA;837;CPIN;3068;AMRT;1382;BUVA;842;INCO;4584",
+            "Buy 14;ANTM;2749;NCKL;790;MDKA;2542;MBMA;516;INKP;7068;ISAT;1902;NCKL;841;BFIN;754;BUMI;141",
+            "Buy 15;PTBA;2333;INTP;4138;VKTR;465;BBTN;1086;MTEL;490;TINS;3452;LSIP;1261;AMRT;1396;JPFA;1973",
+            "Buy 16;INDF;6711;MTEL;521;PANI;5720;JSMR;2665;CUAN;622;BULL;332;KIJA;134;JPFA;2043;PGAS;1403",
+            "Buy 17;INTP;4131;AMMN;3134;PGAS;1367;INKP;6977;NCKL;857;SMGR;1401;MTEL;494;CUAN;612;ASII;4802",
+            "Buy 18;MTEL;488;ITMG;21977;INKP;7028;TOWR;369;VKTR;535;BRMS;515;RAJA;4122;PANI;5924;BREN;3263",
+            "Sell 18;BBTN;1115;INDF;6662;HRTA;1675;MYOR;1760;AMRT;1395;INCO;4584;INCO;4593;MMIX;575;ICBP;6605",
+            "Sell 17;MYOR;1871;BULL;321;BRPT;1390;INDF;6778;PTBA;2310;ENRG;1116;BSML;523;RMKE;2140;EMAS;5574",
+            "Sell 16;BREN;3252;IMPC;1369;MEDC;1057;AMMN;3304;COCO;276;UNTR;23795;ELSA;589;PSAB;405;AMMN;3460",
+            "Sell 15;BULL;346;UNVR;1799;PTBA;2279;VKTR;508;ESSA;544;BFIN;751;INTP;4417;GOTO;50;KLBF;728",
+            "Sell 14;UNVR;1766;PANI;5862;MAPI;1520;ITMG;22465;ICBP;6953;MINA;276;JPFA;2060;PADI;88;BBNI;3378",
+            "Sell 13;BUVA;740;EMAS;5655;ANTM;2610;ADRO;2291;TAPG;1549;CUAN;611;PTRO;4008;BAPA;417;PACK;210",
+            "Sell 12;KLBF;795;CUAN;542;ISAT;1785;INDY;1875;JPFA;2011;MDKA;2719;TPIA;1890;ITMG;22740;ADMR;1417",
+            "Sell 11;DSSA;829;SSIA;1453;AMMN;3223;TLKM;2461;BBTN;1134;PGAS;200;CPIN;3127;UNTR;24270;AMRT;1419",
+            "Sell 10;CUAN;572;TPIA;1666;INDF;6628;TINS;3388;BUMI;139;BBTN;1158;BBTN;1193;BUMI;137;ANTM;2814",
+            "Sell 9;ADRO;2268;MYOR;1831;EMAS;5566;AMRT;1397;TLKM;2511;MEDC;1109;GGRM;16515;INCO;4582;TLKM;2487",
+            "Sell 8;TINS;3475;BREN;3116;AMRT;1380;BNBR;102;DEWA;313;AKRA;1287;AMMN;3571;TPIA;1825;MEDC;1179",
+            "Sell 7;AMMN;3318;DSSA;805;BIPI;114;MEDC;1065;BREN;3437;RAJA;4064;KLBF;744;KLBF;741;CUAN;607",
+            "Sell 6;ENRG;1105;ICBP;6765;TINS;3339;ANTM;2743;AMMN;3459;KLBF;744;MAPI;1520;BMRI;4015;DSSA;778",
+            "Sell 5;BUMI;141;CPIN;3286;RAJA;3942;UNTR;22543;ASII;4764;ASII;4749;CUAN;625;ASII;4913;BMRI;4000",
+            "Sell 4;MAPI;1511;INKP;7067;BREN;3278;BMRI;3921;ANTM;2919;BBRI;2730;BRPT;1559;BBRI;2805;EMMI;487",
+            "Sell 3;AADI;8006;UNTR;22431;CUAN;587;BRPT;1496;UNTR;23604;BUVA;828;BBNI;3391;TLKM;2498;TPIA;1823",
+            "Sell 2;PGAS;1439;AADI;7832;TPIA;1766;TPIA;1766;BMRI;4015;TPIA;1846;BMRI;4040;BRPT;1531;RAJA;4198",
+            "Sell 1;TLKM;2425;TLKM;2367;RATU;5274;BBCA;5807;BBCA;6039;BBCA;6106;BBRI;2844;BBCA;6274;BBCA;6148"
+        ].join('\n');
 
-        // --- DATA FOREIGN (29 Jun - 09 Jul) ---
-        const FOREIGN_RAW = `
-Buy 1;TLKM;2427;TLKM;2364;TLKM;2415;BMRI;3919;BBCA;6045;BBCA;6102;BBRI;2848;BREN;3346;BBCA;6151
-Buy 2;PGAS;1440;CPIN;3336;CUAN;585;UNTR;22579;BMRI;4016;TPIA;1848;BBCA;6252;BBCA;6265;BREN;3266
-Buy 3;TINS;3473;ICBP;6764;RATU;5325;BREN;3375;BREN;3448;BREN;3404;BRPT;1560;TLKM;2499;RAJA;4187
-Buy 4;BUVA;743;ESSA;530;BBCA;5655;TPIA;1767;AMMN;3462;BBRI;2738;BBNI;3406;BRPT;1525;TPIA;1825
-Buy 5;MAPI;1513;INKP;7074;BREN;3286;MEDC;1065;TLKM;2511;BUVA;833;AMMN;3575;TPIA;1825;DEWA;324
-Buy 6;IMPC;1378;UNTR;22421;RAJA;3923;WIFI;1677;UNTR;23551;RAJA;4065;CPIN;3137;BNBR;97;BMRI;4011
-Buy 7;CUAN;573;ARKO;5006;EMAS;5561;BBCA;5793;BUMI;139;INCO;4584;ADRO;2309;IECX;1950;ANTM;2820
-Buy 8;BUMI;141;BREN;3123;BIPI;114;MYOR;1758;DSSA;839;KLBF;746;CUAN;626;UNTR;24219;MEDC;1182
-Buy 9;AMMN;3309;MYOR;1832;DSSA;818;KLBF;750;INCO;4584;BRMS;513;KLBF;745;KLBF;742;CUAN;609
-Buy 10;ENRG;1104;GOTO;50;AMMN;3228;BNBR;101;BRMS;507;MINA;277;PTRO;4010;GOTO;50;UNTR;24048
-Buy 11;UNVR;1767;UNVR;1799;MAPI;1519;COCO;230;DEWA;313;TCPI;7043;BBTN;1199;BBRI;2806;GOTO;50
-Buy 12;TCPI;7275;PNBN;885;PTRO;3835;INCO;4344;ASII;4776;BBTN;1157;GGRM;16549;BMRI;4017;BBTN;1169
-Buy 13;ARCI;920;TPIA;1666;PTBA;2280;VKTR;506;JPFA;2011;MEDC;1110;ENRG;1126;BAPA;438;AMRT;1418
-Buy 14;ADRO;2271;INDF;6665;MEDC;1051;SMGR;1409;ANTM;2918;ASII;4752;JPFA;2070;MARK;1012;PGAS;1403
-Buy 15;BULL;346;BUVA;704;ISAT;1786;ENRG;1047;BBTN;1131;RATU;5438;BSML;521;BUMI;138;ADMR;1419
-Buy 16;GGRM;16294;IMPC;1376;IMPC;1393;INDY;1874;TINS;3440;ENRG;1116;SMGR;1477;TAPG;1556;BNBR;89
-Buy 17;SAME;399;RAJA;3608;ERAA;359;TINS;3387;KLBF;759;TINS;3454;INCO;4596;SSIA;1485;RATU;5396
-Buy 18;HRTA;1779;SSIA;1447;TINS;3348;MARK;975;PGAS;1384;BUMI;141;COCO;315;EMMI;569;ERAA;341
-Sell 18;KLBF;788;TINS;3314;AMRT;1379;MDKA;2573;AKRA;1251;BULL;332;RAJA;4121;UNVR;1725;CPIN;3068
-Sell 17;DEWA;306;ADRO;2255;PANI;5716;RATU;5393;CMRY;4356;ISAT;1899;BIPI;125;PANI;5924;JECX;1660
-Sell 16;CPIN;3125;MDKA;2480;ADRO;2263;JPFA;1961;MBMA;523;ARCI;1005;INKP;7319;MBMA;494;INCO;4585
-Sell 15;PTBA;2331;BRPT;1332;INKP;7024;PGAS;1367;BNBR;111;NCKL;853;BNBR;102;INCO;4573;NCKL;800
-Sell 14;MEDC;1059;INCO;4205;CPIN;3192;ITMG;22464;NCKL;856;PGAS;1398;AKRA;1296;MEDC;1157;ARTO;1119
-Sell 13;JSMR;2847;JPFA;1951;ITMG;22275;ISAT;1818;AMRT;1395;AMRT;1397;NCKL;840;ENRG;1159;AMMN;3453
-Sell 12;PTRO;3829;PGAS;1374;PGAS;1367;BUVA;768;ITMG;22537;SMGR;1401;ANTM;2942;SMGR;1458;BUMI;141
-Sell 11;DSSA;825;ASII;4547;DEWA;289;NCKL;818;VKTR;537;EMAS;5870;DSSA;819;CPIN;3081;JPFA;1973
-Sell 10;EMAS;6152;DSSA;808;AADI;7824;BRMS;499;PTRO;3911;CMRY;4320;BUVA;871;BFIN;752;BBNI;3377
-Sell 9;AMRT;1423;AMRT;1390;MDKA;2542;AMRT;1391;CPIN;3101;DEWA;317;BUMI;141;NCKL;829;ADRO;2291
-Sell 8;MBMA;499;AMMN;3126;UNTR;22132;RAJA;3977;CUAN;624;BRPT;1507;ASII;4925;ERAA;345;AADI;8102
-Sell 7;BRPT;1434;AADI;7831;ANTM;2610;MAPI;1520;BBNI;3255;TLKM;2483;AADI;8042;MDKA;2623;ENRG;1250
-Sell 6;BBNI;3278;BBNI;3192;ASII;4577;DSSA;816;EMAS;5912;ANTM;2969;MDKA;2690;ANTM;2855;TLKM;2490
-Sell 5;TPIA;1773;ANTM;2626;BRMS;485;AADI;7900;TPIA;1807;BBNI;3266;BRMS;514;AMMN;3433;BFIN;779
-Sell 4;AADI;7996;BRMS;467;BBNI;3114;BBNI;3192;MAPI;1518;AMMN;3494;BMRI;4040;BBNI;3414;MDKA;2578
-Sell 3;BBRI;2842;BMRI;3868;TPIA;1714;AMMN;3308;BRPT;1540;DSSA;819;TLKM;2461;ASII;4907;ASII;4815
-Sell 2;BMRI;3958;BBRI;2762;BMRI;3823;ASII;4610;ISAT;1972;MAPI;1517;MAPI;1519;BRMS;489;BBRI;2760
-Sell 1;BBCA;6032;BBCA;5668;BBRI;2697;BBRI;2695;BBRI;2720;BMRI;3992;BREN;3415;MAPI;1521;MAPI;1520
-`;
+        var FOREIGN_RAW = [
+            "Buy 1;TLKM;2427;TLKM;2364;TLKM;2415;BMRI;3919;BBCA;6045;BBCA;6102;BBRI;2848;BREN;3346;BBCA;6151",
+            "Buy 2;PGAS;1440;CPIN;3336;CUAN;585;UNTR;22579;BMRI;4016;TPIA;1848;BBCA;6252;BBCA;6265;BREN;3266",
+            "Buy 3;TINS;3473;ICBP;6764;RATU;5325;BREN;3375;BREN;3448;BREN;3404;BRPT;1560;TLKM;2499;RAJA;4187",
+            "Buy 4;BUVA;743;ESSA;530;BBCA;5655;TPIA;1767;AMMN;3462;BBRI;2738;BBNI;3406;BRPT;1525;TPIA;1825",
+            "Buy 5;MAPI;1513;INKP;7074;BREN;3286;MEDC;1065;TLKM;2511;BUVA;833;AMMN;3575;TPIA;1825;DEWA;324",
+            "Buy 6;IMPC;1378;UNTR;22421;RAJA;3923;WIFI;1677;UNTR;23551;RAJA;4065;CPIN;3137;BNBR;97;BMRI;4011",
+            "Buy 7;CUAN;573;ARKO;5006;EMAS;5561;BBCA;5793;BUMI;139;INCO;4584;ADRO;2309;IECX;1950;ANTM;2820",
+            "Buy 8;BUMI;141;BREN;3123;BIPI;114;MYOR;1758;DSSA;839;KLBF;746;CUAN;626;UNTR;24219;MEDC;1182",
+            "Buy 9;AMMN;3309;MYOR;1832;DSSA;818;KLBF;750;INCO;4584;BRMS;513;KLBF;745;KLBF;742;CUAN;609",
+            "Buy 10;ENRG;1104;GOTO;50;AMMN;3228;BNBR;101;BRMS;507;MINA;277;PTRO;4010;GOTO;50;UNTR;24048",
+            "Buy 11;UNVR;1767;UNVR;1799;MAPI;1519;COCO;230;DEWA;313;TCPI;7043;BBTN;1199;BBRI;2806;GOTO;50",
+            "Buy 12;TCPI;7275;PNBN;885;PTRO;3835;INCO;4344;ASII;4776;BBTN;1157;GGRM;16549;BMRI;4017;BBTN;1169",
+            "Buy 13;ARCI;920;TPIA;1666;PTBA;2280;VKTR;506;JPFA;2011;MEDC;1110;ENRG;1126;BAPA;438;AMRT;1418",
+            "Buy 14;ADRO;2271;INDF;6665;MEDC;1051;SMGR;1409;ANTM;2918;ASII;4752;JPFA;2070;MARK;1012;PGAS;1403",
+            "Buy 15;BULL;346;BUVA;704;ISAT;1786;ENRG;1047;BBTN;1131;RATU;5438;BSML;521;BUMI;138;ADMR;1419",
+            "Buy 16;GGRM;16294;IMPC;1376;IMPC;1393;INDY;1874;TINS;3440;ENRG;1116;SMGR;1477;TAPG;1556;BNBR;89",
+            "Buy 17;SAME;399;RAJA;3608;ERAA;359;TINS;3387;KLBF;759;TINS;3454;INCO;4596;SSIA;1485;RATU;5396",
+            "Buy 18;HRTA;1779;SSIA;1447;TINS;3348;MARK;975;PGAS;1384;BUMI;141;COCO;315;EMMI;569;ERAA;341",
+            "Sell 18;KLBF;788;TINS;3314;AMRT;1379;MDKA;2573;AKRA;1251;BULL;332;RAJA;4121;UNVR;1725;CPIN;3068",
+            "Sell 17;DEWA;306;ADRO;2255;PANI;5716;RATU;5393;CMRY;4356;ISAT;1899;BIPI;125;PANI;5924;JECX;1660",
+            "Sell 16;CPIN;3125;MDKA;2480;ADRO;2263;JPFA;1961;MBMA;523;ARCI;1005;INKP;7319;MBMA;494;INCO;4585",
+            "Sell 15;PTBA;2331;BRPT;1332;INKP;7024;PGAS;1367;BNBR;111;NCKL;853;BNBR;102;INCO;4573;NCKL;800",
+            "Sell 14;MEDC;1059;INCO;4205;CPIN;3192;ITMG;22464;NCKL;856;PGAS;1398;AKRA;1296;MEDC;1157;ARTO;1119",
+            "Sell 13;JSMR;2847;JPFA;1951;ITMG;22275;ISAT;1818;AMRT;1395;AMRT;1397;NCKL;840;ENRG;1159;AMMN;3453",
+            "Sell 12;PTRO;3829;PGAS;1374;PGAS;1367;BUVA;768;ITMG;22537;SMGR;1401;ANTM;2942;SMGR;1458;BUMI;141",
+            "Sell 11;DSSA;825;ASII;4547;DEWA;289;NCKL;818;VKTR;537;EMAS;5870;DSSA;819;CPIN;3081;JPFA;1973",
+            "Sell 10;EMAS;6152;DSSA;808;AADI;7824;BRMS;499;PTRO;3911;CMRY;4320;BUVA;871;BFIN;752;BBNI;3377",
+            "Sell 9;AMRT;1423;AMRT;1390;MDKA;2542;AMRT;1391;CPIN;3101;DEWA;317;BUMI;141;NCKL;829;ADRO;2291",
+            "Sell 8;MBMA;499;AMMN;3126;UNTR;22132;RAJA;3977;CUAN;624;BRPT;1507;ASII;4925;ERAA;345;AADI;8102",
+            "Sell 7;BRPT;1434;AADI;7831;ANTM;2610;MAPI;1520;BBNI;3255;TLKM;2483;AADI;8042;MDKA;2623;ENRG;1250",
+            "Sell 6;BBNI;3278;BBNI;3192;ASII;4577;DSSA;816;EMAS;5912;ANTM;2969;MDKA;2690;ANTM;2855;TLKM;2490",
+            "Sell 5;TPIA;1773;ANTM;2626;BRMS;485;AADI;7900;TPIA;1807;BBNI;3266;BRMS;514;AMMN;3433;BFIN;779",
+            "Sell 4;AADI;7996;BRMS;467;BBNI;3114;BBNI;3192;MAPI;1518;AMMN;3494;BMRI;4040;BBNI;3414;MDKA;2578",
+            "Sell 3;BBRI;2842;BMRI;3868;TPIA;1714;AMMN;3308;BRPT;1540;DSSA;819;TLKM;2461;ASII;4907;ASII;4815",
+            "Sell 2;BMRI;3958;BBRI;2762;BMRI;3823;ASII;4610;ISAT;1972;MAPI;1517;MAPI;1519;BRMS;489;BBRI;2760",
+            "Sell 1;BBCA;6032;BBCA;5668;BBRI;2697;BBRI;2695;BBRI;2720;BMRI;3992;BREN;3415;MAPI;1521;MAPI;1520"
+        ].join('\n');
 
-        // --- WEEKLY FOREIGN (Week 20 - Week 28) ---
-        const WEEKLY_FOREIGN_RAW = `
-Buy 1;PACK;288;MDKA;2514;MDKA;2769;BUMI;149;TPIA;1742;BBCA;6291;BBCA;6122;TLKM;2407;;
-Buy 2;TINS;3548;BUMI;179;INCO;4947;TINS;2999;ASII;4622;MDKA;2841;TINS;3638;UNTR;22694;;
-Buy 3;ISAT;2278;INCO;5002;TLKM;3036;ADRO;2224;BUMI;144;MYOR;1892;GGRM;16862;BREN;3300;;
-Buy 4;WBSA;1215;MBMA;476;NCKL;876;CUAN;736;GOTO;50;GOTO;50;UNTR;22331;BUMI;137;;
-Buy 5;DEWA;478;TINS;3176;GOTO;50;BIPI;151;PANI;6129;BREN;3997;ASII;4768;CUAN;595;;
-Buy 6;ADMR;1784;ITMG;23412;INDF;6905;MEDC;1251;MEDC;1212;TINS;3545;RAJA;3937;ESSA;545;;
-Buy 7;TLKM;2945;BRPT;1739;ADRO;2293;DEWA;289;BUVA;692;UNVR;1669;BUKA;100;ICBP;6813;;
-Buy 8;BULL;456;JPFA;2594;RAJA;3585;INDY;2018;ISAT;1821;MARK;898;BBTN;1128;IMPC;1397;;
-Buy 9;GGRM;16814;ENRG;1421;RATU;4860;BREN;3971;ARCI;932;HRTA;2196;GOTO;50;RATU;5251;;
-Buy 10;DMAS;151;GOTO;50;MINA;321;AMRT;1334;CDIA;653;AKRA;1229;INTP;4117;MYOR;1802;;
-Buy 11;RAJA;4340;ARCI;1181;DMAS;157;ESSA;602;MARK;791;BUKA;105;BIPI;140;ARKO;5051;;
-Buy 12;ITMG;23888;GGRM;16902;TINS;3340;PANI;6570;WIFI;1482;SSIA;1650;SMGR;1490;KLBF;767;;
-Buy 13;TCPI;11469;SSIA;1602;BUVA;702;ENRG;1323;EXCL;2524;MLBI;6173;PTRO;4100;PGAS;1395;;
-Buy 14;MEDC;1568;ADMR;1481;FILM;2313;ARCI;1027;SINI;9180;ICBP;6650;MARK;939;MEDC;1062;;
-Buy 15;ADRO;2502;DEWA;374;MAPA;633;BULL;328;FILM;1676;KETR;559;WIFI;1644;UNVR;1794;;
-Buy 16;AKRA;1463;CPIN;4187;PANI;7706;DMAS;155;PGAS;1470;INTP;4160;SCMA;213;MARK;960;;
-Buy 17;JPFA;2471;DMAS;152;BNGA;1628;PWON;276;PTRO;4020;CMRY;4375;UNVR;1717;GOTO;50;;
-Buy 18;LSIP;1520;HRTA;2254;GGRM;16411;LSIP;1252;CPIN;3706;BIRD;1612;MAPA;620;BULL;324;;
-Sell 18;AMRT;1389;PACK;329;TAPG;1524;UNVR;1615;TKIM;5107;ADMR;1567;NCKL;852;PTRO;3815;;
-Sell 17;BRIS;1848;PGAS;1818;MAPI;1498;ADRO;2303;INDF;6330;ANTM;3129;KLBF;732;EMAS;5865;;
-Sell 16;MDKA;2824;BIPI;195;TKIM;5635;PTRO;4447;IMPC;1481;BBNI;3724;AMRT;1422;ITMG;22265;;
-Sell 15;PTRO;5144;EMAS;6894;BUMI;173;UNTR;21969;CUAN;710;MAPI;1501;INCO;4739;NCKL;816;;
-Sell 14;BUMI;214;MEDC;1416;BRPT;1774;EMAS;7266;AKRA;1232;KLBF;720;BBNI;3401;MBMA;498;;
-Sell 13;TPIA;4712;TKIM;6773;BBNI;3738;ANTM;2749;INKP;7334;AMRT;1372;BUMI;154;ISAT;1921;;
-Sell 12;KLBF;881;ASII;5710;CUAN;589;MAPI;1492;ICBP;6264;EMAS;7238;MBMA;508;AMRT;1401;;
-Sell 11;BIPI;208;CUAN;632;ANTM;2946;TLKM;2895;ANTM;2763;ESSA;648;TLKM;2500;ASII;4607;;
-Sell 10;INCO;5916;BBRI;3051;ASII;5097;AADI;7978;AMMN;3290;BRMS;664;MAPI;1515;BRPT;1436;;
-Sell 9;BREN;3480;TLKM;3043;BBRI;3000;BRPT;1847;MBMA;456;DEWA;373;EMAS;6788;ANTM;2732;;
-Sell 8;BRPT;2141;BMRI;4155;BMRI;4154;BBNI;3474;ITMG;22126;BMRI;4394;AADI;8036;BRMS;487;;
-Sell 7;AMMN;3841;BREN;2861;DSSA;482;DSSA;650;MAPI;1489;NCKL;879;TPIA;1917;TPIA;1730;;
-Sell 6;CUAN;942;DSSA;698;TPIA;1881;ASII;4746;BBNI;3345;AADI;7988;AMMN;3568;MAPI;1518;;
-Sell 5;ANTM;3587;TPIA;2529;AMRT;1180;BBCA;5423;EMAS;6976;ASII;4825;BREN;3673;AADI;7903;;
-Sell 4;DSSA;1143;ANTM;3067;BREN;3106;BMRI;4004;BMRI;4018;BUMI;174;BMRI;4059;BBNI;3180;;
-Sell 3;BBRI;3187;AMMN;3049;BBCA;5831;BBRI;2887;BBCA;5272;AMMN;3839;ANTM;2811;BMRI;3899;;
-Sell 2;BBCA;6116;BBCA;5960;AMMN;3250;TPIA;1540;BBRI;2759;TLKM;2757;DSSA;830;BBCA;5810;;
-Sell 1;BMRI;4247;BBRI;3050;TLKM;2905;CUAN;1212;CUAN;1289;DSSA;831;BBRI;2874;BBRI;2735;;
-`;
+        var WEEKLY_FOREIGN_RAW = [
+            "Buy 1;PACK;288;MDKA;2514;MDKA;2769;BUMI;149;TPIA;1742;BBCA;6291;BBCA;6122;TLKM;2407;;",
+            "Buy 2;TINS;3548;BUMI;179;INCO;4947;TINS;2999;ASII;4622;MDKA;2841;TINS;3638;UNTR;22694;;",
+            "Buy 3;ISAT;2278;INCO;5002;TLKM;3036;ADRO;2224;BUMI;144;MYOR;1892;GGRM;16862;BREN;3300;;",
+            "Buy 4;WBSA;1215;MBMA;476;NCKL;876;CUAN;736;GOTO;50;GOTO;50;UNTR;22331;BUMI;137;;",
+            "Buy 5;DEWA;478;TINS;3176;GOTO;50;BIPI;151;PANI;6129;BREN;3997;ASII;4768;CUAN;595;;",
+            "Buy 6;ADMR;1784;ITMG;23412;INDF;6905;MEDC;1251;MEDC;1212;TINS;3545;RAJA;3937;ESSA;545;;",
+            "Buy 7;TLKM;2945;BRPT;1739;ADRO;2293;DEWA;289;BUVA;692;UNVR;1669;BUKA;100;ICBP;6813;;",
+            "Buy 8;BULL;456;JPFA;2594;RAJA;3585;INDY;2018;ISAT;1821;MARK;898;BBTN;1128;IMPC;1397;;",
+            "Buy 9;GGRM;16814;ENRG;1421;RATU;4860;BREN;3971;ARCI;932;HRTA;2196;GOTO;50;RATU;5251;;",
+            "Buy 10;DMAS;151;GOTO;50;MINA;321;AMRT;1334;CDIA;653;AKRA;1229;INTP;4117;MYOR;1802;;",
+            "Buy 11;RAJA;4340;ARCI;1181;DMAS;157;ESSA;602;MARK;791;BUKA;105;BIPI;140;ARKO;5051;;",
+            "Buy 12;ITMG;23888;GGRM;16902;TINS;3340;PANI;6570;WIFI;1482;SSIA;1650;SMGR;1490;KLBF;767;;",
+            "Buy 13;TCPI;11469;SSIA;1602;BUVA;702;ENRG;1323;EXCL;2524;MLBI;6173;PTRO;4100;PGAS;1395;;",
+            "Buy 14;MEDC;1568;ADMR;1481;FILM;2313;ARCI;1027;SINI;9180;ICBP;6650;MARK;939;MEDC;1062;;",
+            "Buy 15;ADRO;2502;DEWA;374;MAPA;633;BULL;328;FILM;1676;KETR;559;WIFI;1644;UNVR;1794;;",
+            "Buy 16;AKRA;1463;CPIN;4187;PANI;7706;DMAS;155;PGAS;1470;INTP;4160;SCMA;213;MARK;960;;",
+            "Buy 17;JPFA;2471;DMAS;152;BNGA;1628;PWON;276;PTRO;4020;CMRY;4375;UNVR;1717;GOTO;50;;",
+            "Buy 18;LSIP;1520;HRTA;2254;GGRM;16411;LSIP;1252;CPIN;3706;BIRD;1612;MAPA;620;BULL;324;;",
+            "Sell 18;AMRT;1389;PACK;329;TAPG;1524;UNVR;1615;TKIM;5107;ADMR;1567;NCKL;852;PTRO;3815;;",
+            "Sell 17;BRIS;1848;PGAS;1818;MAPI;1498;ADRO;2303;INDF;6330;ANTM;3129;KLBF;732;EMAS;5865;;",
+            "Sell 16;MDKA;2824;BIPI;195;TKIM;5635;PTRO;4447;IMPC;1481;BBNI;3724;AMRT;1422;ITMG;22265;;",
+            "Sell 15;PTRO;5144;EMAS;6894;BUMI;173;UNTR;21969;CUAN;710;MAPI;1501;INCO;4739;NCKL;816;;",
+            "Sell 14;BUMI;214;MEDC;1416;BRPT;1774;EMAS;7266;AKRA;1232;KLBF;720;BBNI;3401;MBMA;498;;",
+            "Sell 13;TPIA;4712;TKIM;6773;BBNI;3738;ANTM;2749;INKP;7334;AMRT;1372;BUMI;154;ISAT;1921;;",
+            "Sell 12;KLBF;881;ASII;5710;CUAN;589;MAPI;1492;ICBP;6264;EMAS;7238;MBMA;508;AMRT;1401;;",
+            "Sell 11;BIPI;208;CUAN;632;ANTM;2946;TLKM;2895;ANTM;2763;ESSA;648;TLKM;2500;ASII;4607;;",
+            "Sell 10;INCO;5916;BBRI;3051;ASII;5097;AADI;7978;AMMN;3290;BRMS;664;MAPI;1515;BRPT;1436;;",
+            "Sell 9;BREN;3480;TLKM;3043;BBRI;3000;BRPT;1847;MBMA;456;DEWA;373;EMAS;6788;ANTM;2732;;",
+            "Sell 8;BRPT;2141;BMRI;4155;BMRI;4154;BBNI;3474;ITMG;22126;BMRI;4394;AADI;8036;BRMS;487;;",
+            "Sell 7;AMMN;3841;BREN;2861;DSSA;482;DSSA;650;MAPI;1489;NCKL;879;TPIA;1917;TPIA;1730;;",
+            "Sell 6;CUAN;942;DSSA;698;TPIA;1881;ASII;4746;BBNI;3345;AADI;7988;AMMN;3568;MAPI;1518;;",
+            "Sell 5;ANTM;3587;TPIA;2529;AMRT;1180;BBCA;5423;EMAS;6976;ASII;4825;BREN;3673;AADI;7903;;",
+            "Sell 4;DSSA;1143;ANTM;3067;BREN;3106;BMRI;4004;BMRI;4018;BUMI;174;BMRI;4059;BBNI;3180;;",
+            "Sell 3;BBRI;3187;AMMN;3049;BBCA;5831;BBRI;2887;BBCA;5272;AMMN;3839;ANTM;2811;BMRI;3899;;",
+            "Sell 2;BBCA;6116;BBCA;5960;AMMN;3250;TPIA;1540;BBRI;2759;TLKM;2757;DSSA;830;BBCA;5810;;",
+            "Sell 1;BMRI;4247;BBRI;3050;TLKM;2905;CUAN;1212;CUAN;1289;DSSA;831;BBRI;2874;BBRI;2735;;"
+        ].join('\n');
 
-        const DATES_DAILY = ['29/06', '30/06', '01/07', '02/07', '03/07', '06/07', '07/07', '08/07', '09/07'];
-        const DATES_WEEKLY = ['Week-20', 'Week-21', 'Week-22', 'Week-23', 'Week-24', 'Week-25', 'Week-26', 'Week-27', 'Week-28'];
+        var DATES_DAILY = ['29/06', '30/06', '01/07', '02/07', '03/07', '06/07', '07/07', '08/07', '09/07'];
+        var DATES_WEEKLY = ['Week-20', 'Week-21', 'Week-22', 'Week-23', 'Week-24', 'Week-25', 'Week-26', 'Week-27', 'Week-28'];
 
         // ==========================================
         // 2. PALET WARNA BERSAMA
         // ==========================================
-        const COLORS = [
+        var COLORS = [
             '#f87171', '#60a5fa', '#34d399', '#fbbf24', '#a78bfa',
             '#f472b6', '#2dd4bf', '#fb923c', '#818cf8', '#e879f9',
             '#4ade80', '#38bdf8', '#c084fc', '#facc15', '#94a3b8',
@@ -193,8 +198,8 @@ Sell 1;BMRI;4247;BBRI;3050;TLKM;2905;CUAN;1212;CUAN;1289;DSSA;831;BBRI;2874;BBRI
         ];
 
         function getColor(ticker) {
-            let hash = 0;
-            for (let i = 0; i < ticker.length; i++) {
+            var hash = 0;
+            for (var i = 0; i < ticker.length; i++) {
                 hash = ticker.charCodeAt(i) + ((hash << 5) - hash);
             }
             return COLORS[Math.abs(hash) % COLORS.length];
@@ -204,74 +209,82 @@ Sell 1;BMRI;4247;BBRI;3050;TLKM;2905;CUAN;1212;CUAN;1289;DSSA;831;BBRI;2874;BBRI
         // 3. FUNGSI PARSING & EXTRACT HARGA
         // ==========================================
         function parseData(rawText, datesArray) {
-            const seriesMap = {};
-            if (!rawText || !rawText.trim()) return { dates: datesArray, series: [] };
-            const lines = rawText.trim().split('\n');
+            var seriesMap = {};
+            if (!rawText || rawText.trim() === '') return { dates: datesArray, series: [] };
+            var lines = rawText.trim().split('\n');
 
-            lines.forEach((line) => {
-                if (!line.includes('Buy ') && !line.includes('Sell ')) return;
-                const cols = line.split(';').map(c => c.trim());
+            lines.forEach(function(line) {
+                if (line.indexOf('Buy ') === -1 && line.indexOf('Sell ') === -1) return;
+                var cols = line.split(';').map(function(c) { return c.trim(); });
                 if (cols.length < 3) return;
                 
-                const typeText = cols[0];
-                const matchType = typeText.match(/(Buy|Sell)\s+(\d+)/);
+                var typeText = cols[0];
+                var matchType = typeText.match(/(Buy|Sell)\s+(\d+)/);
                 if (!matchType) return;
                 
-                const type = matchType[1];
-                const rank = parseInt(matchType[2], 10);
-                let r = (type === 'Buy') ? rank - 1 : 37 - rank; 
+                var type = matchType[1];
+                var rank = parseInt(matchType[2], 10);
+                var r = (type === 'Buy') ? rank - 1 : 37 - rank; 
 
-                datesArray.forEach((date, dIndex) => {
-                    const colIdx = 1 + (dIndex * 2); 
+                datesArray.forEach(function(date, dIndex) {
+                    var colIdx = 1 + (dIndex * 2); 
                     if (colIdx < cols.length) {
-                        const ticker = cols[colIdx];
-                        const price = cols[colIdx + 1]; 
+                        var ticker = cols[colIdx];
+                        var price = cols[colIdx + 1]; 
                         
                         if (ticker && ticker !== '-' && ticker.length > 0) {
-                            if (!seriesMap[ticker]) seriesMap[ticker] = { ticker, points: [] };
+                            if (!seriesMap[ticker]) seriesMap[ticker] = { ticker: ticker, points: [] };
                             seriesMap[ticker].points.push({ d: dIndex, r: r, price: price });
                         }
                     }
                 });
             });
 
-            const seriesArray = Object.values(seriesMap);
-            seriesArray.forEach(series => series.points.sort((a, b) => a.d - b.d));
+            var seriesArray = [];
+            for (var key in seriesMap) {
+                if (seriesMap.hasOwnProperty(key)) {
+                    seriesArray.push(seriesMap[key]);
+                }
+            }
+            seriesArray.forEach(function(series) {
+                series.points.sort(function(a, b) { return a.d - b.d; });
+            });
             return { dates: datesArray, series: seriesArray };
         }
 
         // ==========================================
         // 4. FUNGSI RENDER CHART BERSAMA
         // ==========================================
-        function buildChart(containerId, titleText, data, svgWidth = 1900) {
-            const height = 1800;
-            const margin = { top: 100, right: 140, bottom: 100, left: 140 };
-            const innerWidth = svgWidth - margin.left - margin.right;
-            const innerHeight = height - margin.top - margin.bottom;
+        function buildChart(containerId, titleText, data, svgWidth) {
+            svgWidth = svgWidth || 1900;
+            var height = 1800;
+            var margin = { top: 100, right: 140, bottom: 100, left: 140 };
+            var innerWidth = svgWidth - margin.left - margin.right;
+            var innerHeight = height - margin.top - margin.bottom;
             
-            const totalRanks = 37; 
-            let activeTicker = null;
-            const numDates = data.dates ? data.dates.length : 0;
+            var totalRanks = 37; 
+            var activeTicker = null;
+            var numDates = data.dates ? data.dates.length : 0;
 
-            const svgNamespace = "http://www.w3.org/2000/svg";
-            const svg = document.createElementNS(svgNamespace, "svg");
-            svg.setAttribute("viewBox", `0 0 ${svgWidth} ${height}`);
+            var svgNamespace = "http://www.w3.org/2000/svg";
+            var svg = document.createElementNS(svgNamespace, "svg");
+            svg.setAttribute("viewBox", "0 0 " + svgWidth + " " + height);
             
             // Background
-            const bgRect = document.createElementNS(svgNamespace, "rect");
+            var bgRect = document.createElementNS(svgNamespace, "rect");
             bgRect.setAttribute("x", 0);
             bgRect.setAttribute("y", 0);
             bgRect.setAttribute("width", svgWidth);
             bgRect.setAttribute("height", height);
             bgRect.setAttribute("fill", "#111111"); 
             bgRect.classList.add("svg-background");
-            bgRect.addEventListener("click", () => {
+            bgRect.addEventListener("click", function() {
                 if (typeof handleSelect === 'function') handleSelect(null);
             });
             svg.appendChild(bgRect);
             
             // Judul Chart
-            const title = document.createElementNS(svgNamespace, "text");
+            var title = document.createElementNS(svgNamespace, "text");
             title.setAttribute("x", svgWidth / 2);
             title.setAttribute("y", 50);
             title.setAttribute("fill", "#fbbf24");
@@ -285,7 +298,7 @@ Sell 1;BMRI;4247;BBRI;3050;TLKM;2905;CUAN;1212;CUAN;1289;DSSA;831;BBRI;2874;BBRI
             document.getElementById(containerId).appendChild(svg);
 
             if (numDates === 0 || !data.series || data.series.length === 0) {
-                const emptyMsg = document.createElementNS(svgNamespace, "text");
+                var emptyMsg = document.createElementNS(svgNamespace, "text");
                 emptyMsg.setAttribute("x", svgWidth / 2);
                 emptyMsg.setAttribute("y", height / 2);
                 emptyMsg.setAttribute("fill", "#555555");
@@ -305,13 +318,13 @@ Sell 1;BMRI;4247;BBRI;3050;TLKM;2905;CUAN;1212;CUAN;1289;DSSA;831;BBRI;2874;BBRI
                 return (rankIndex / (totalRanks - 1)) * innerHeight;
             }
 
-            const gMain = document.createElementNS(svgNamespace, "g");
-            gMain.setAttribute("transform", `translate(${margin.left}, ${margin.top})`);
+            var gMain = document.createElementNS(svgNamespace, "g");
+            gMain.setAttribute("transform", "translate(" + margin.left + ", " + margin.top + ")");
             svg.appendChild(gMain);
 
             // GRID & LABELS
-            for (let i = 0; i < totalRanks; i++) {
-                const line = document.createElementNS(svgNamespace, "line");
+            for (var i = 0; i < totalRanks; i++) {
+                var line = document.createElementNS(svgNamespace, "line");
                 line.setAttribute("x1", 0);
                 line.setAttribute("y1", getY(i));
                 line.setAttribute("x2", innerWidth);
@@ -323,18 +336,18 @@ Sell 1;BMRI;4247;BBRI;3050;TLKM;2905;CUAN;1212;CUAN;1289;DSSA;831;BBRI;2874;BBRI
                 if (i === 18) line.setAttribute("stroke-dasharray", "6,6");
                 gMain.appendChild(line);
 
-                let labelText = '';
+                var labelText = '';
                 if (i < 18) {
-                    labelText = `Buy ${i + 1}`;
+                    labelText = 'Buy ' + (i + 1);
                 } else if (i === 18) {
                     labelText = ''; 
                 } else {
-                    const reverseIndex = 37 - i; 
-                    labelText = `Sell ${reverseIndex}`;
+                    var reverseIndex = 37 - i; 
+                    labelText = 'Sell ' + reverseIndex;
                 }
 
                 if (labelText) {
-                    const textLeft = document.createElementNS(svgNamespace, "text");
+                    var textLeft = document.createElementNS(svgNamespace, "text");
                     textLeft.setAttribute("x", -30);
                     textLeft.setAttribute("y", getY(i));
                     textLeft.setAttribute("fill", "#a1a1aa");
@@ -345,7 +358,7 @@ Sell 1;BMRI;4247;BBRI;3050;TLKM;2905;CUAN;1212;CUAN;1289;DSSA;831;BBRI;2874;BBRI
                     textLeft.textContent = labelText;
                     gMain.appendChild(textLeft);
 
-                    const textRight = document.createElementNS(svgNamespace, "text");
+                    var textRight = document.createElementNS(svgNamespace, "text");
                     textRight.setAttribute("x", innerWidth + 30);
                     textRight.setAttribute("y", getY(i));
                     textRight.setAttribute("fill", "#a1a1aa");
@@ -359,7 +372,7 @@ Sell 1;BMRI;4247;BBRI;3050;TLKM;2905;CUAN;1212;CUAN;1289;DSSA;831;BBRI;2874;BBRI
             }
 
             // Garis Neutral Zone
-            const neutralLine = document.createElementNS(svgNamespace, "line");
+            var neutralLine = document.createElementNS(svgNamespace, "line");
             neutralLine.setAttribute("x1", -100);
             neutralLine.setAttribute("y1", getY(18));
             neutralLine.setAttribute("x2", innerWidth + 100);
@@ -370,7 +383,7 @@ Sell 1;BMRI;4247;BBRI;3050;TLKM;2905;CUAN;1212;CUAN;1289;DSSA;831;BBRI;2874;BBRI
             neutralLine.style.pointerEvents = "none";
             gMain.appendChild(neutralLine);
 
-            const neutralText = document.createElementNS(svgNamespace, "text");
+            var neutralText = document.createElementNS(svgNamespace, "text");
             neutralText.setAttribute("x", innerWidth + 50);
             neutralText.setAttribute("y", getY(18));
             neutralText.setAttribute("fill", "#aaa");
@@ -382,8 +395,8 @@ Sell 1;BMRI;4247;BBRI;3050;TLKM;2905;CUAN;1212;CUAN;1289;DSSA;831;BBRI;2874;BBRI
             gMain.appendChild(neutralText);
 
             // Date X Axis
-            data.dates.forEach((date, i) => {
-                const textDate = document.createElementNS(svgNamespace, "text");
+            data.dates.forEach(function(date, i) {
+                var textDate = document.createElementNS(svgNamespace, "text");
                 textDate.setAttribute("x", getX(i));
                 textDate.setAttribute("y", innerHeight + 40);
                 textDate.setAttribute("fill", "#ddd");
@@ -395,29 +408,29 @@ Sell 1;BMRI;4247;BBRI;3050;TLKM;2905;CUAN;1212;CUAN;1289;DSSA;831;BBRI;2874;BBRI
                 gMain.appendChild(textDate);
             });
 
-            const elementRefs = {};
+            var elementRefs = {};
 
             // Layering
-            const gLinesLayer = document.createElementNS(svgNamespace, "g");
+            var gLinesLayer = document.createElementNS(svgNamespace, "g");
             gMain.appendChild(gLinesLayer);
 
-            const gPointsLayer = document.createElementNS(svgNamespace, "g");
+            var gPointsLayer = document.createElementNS(svgNamespace, "g");
             gPointsLayer.style.pointerEvents = "none";
             gMain.appendChild(gPointsLayer);
 
             // Render Data Line & Points
             if (data.series && data.series.length > 0) {
-                data.series.forEach(series => {
-                    const color = getColor(series.ticker);
-                    const pathData = series.points.map((p, index) => 
-                        `${index === 0 ? 'M' : 'L'} ${getX(p.d)} ${getY(p.r)}`
-                    ).join(' ');
+                data.series.forEach(function(series) {
+                    var color = getColor(series.ticker);
+                    var pathData = series.points.map(function(p, index) {
+                        return (index === 0 ? 'M' : 'L') + ' ' + getX(p.d) + ' ' + getY(p.r);
+                    }).join(' ');
 
                     elementRefs[series.ticker] = { lines: [], points: [], texts: [], priceTexts: [] };
 
-                    const gLineGroup = document.createElementNS(svgNamespace, "g");
+                    var gLineGroup = document.createElementNS(svgNamespace, "g");
                     
-                    const hitbox = document.createElementNS(svgNamespace, "path");
+                    var hitbox = document.createElementNS(svgNamespace, "path");
                     hitbox.setAttribute("d", pathData);
                     hitbox.setAttribute("fill", "none");
                     hitbox.setAttribute("stroke", "transparent");
@@ -425,7 +438,7 @@ Sell 1;BMRI;4247;BBRI;3050;TLKM;2905;CUAN;1212;CUAN;1289;DSSA;831;BBRI;2874;BBRI
                     hitbox.classList.add("hitbox");
                     gLineGroup.appendChild(hitbox);
 
-                    const visibleLine = document.createElementNS(svgNamespace, "path");
+                    var visibleLine = document.createElementNS(svgNamespace, "path");
                     visibleLine.setAttribute("d", pathData);
                     visibleLine.setAttribute("fill", "none");
                     visibleLine.setAttribute("stroke", color);
@@ -435,7 +448,7 @@ Sell 1;BMRI;4247;BBRI;3050;TLKM;2905;CUAN;1212;CUAN;1289;DSSA;831;BBRI;2874;BBRI
                     gLineGroup.appendChild(visibleLine);
                     elementRefs[series.ticker].lines.push(visibleLine);
 
-                    gLineGroup.addEventListener("click", (e) => {
+                    gLineGroup.addEventListener("click", function(e) {
                         e.stopPropagation(); 
                         if (activeTicker === series.ticker) {
                             handleSelect(null);
@@ -446,10 +459,10 @@ Sell 1;BMRI;4247;BBRI;3050;TLKM;2905;CUAN;1212;CUAN;1289;DSSA;831;BBRI;2874;BBRI
 
                     gLinesLayer.appendChild(gLineGroup);
 
-                    const gPointGroup = document.createElementNS(svgNamespace, "g");
+                    var gPointGroup = document.createElementNS(svgNamespace, "g");
                     
-                    series.points.forEach(p => {
-                        const circle = document.createElementNS(svgNamespace, "circle");
+                    series.points.forEach(function(p) {
+                        var circle = document.createElementNS(svgNamespace, "circle");
                         circle.setAttribute("cx", getX(p.d));
                         circle.setAttribute("cy", getY(p.r));
                         circle.setAttribute("r", "4");
@@ -459,7 +472,7 @@ Sell 1;BMRI;4247;BBRI;3050;TLKM;2905;CUAN;1212;CUAN;1289;DSSA;831;BBRI;2874;BBRI
                         gPointGroup.appendChild(circle);
                         elementRefs[series.ticker].points.push(circle);
 
-                        const textTicker = document.createElementNS(svgNamespace, "text");
+                        var textTicker = document.createElementNS(svgNamespace, "text");
                         textTicker.setAttribute("x", getX(p.d) - 12);
                         textTicker.setAttribute("y", getY(p.r));
                         textTicker.setAttribute("fill", "#e4e4e7");
@@ -476,7 +489,7 @@ Sell 1;BMRI;4247;BBRI;3050;TLKM;2905;CUAN;1212;CUAN;1289;DSSA;831;BBRI;2874;BBRI
                         elementRefs[series.ticker].texts.push(textTicker);
 
                         // --- FITUR BARU: TEKS HARGA DI ATAS TITIK ---
-                        const priceText = document.createElementNS(svgNamespace, "text");
+                        var priceText = document.createElementNS(svgNamespace, "text");
                         priceText.setAttribute("x", getX(p.d));
                         priceText.setAttribute("y", getY(p.r) - 15); // Offset ke atas
                         priceText.setAttribute("fill", "#10b981"); // Warna hijau cerah
@@ -502,47 +515,51 @@ Sell 1;BMRI;4247;BBRI;3050;TLKM;2905;CUAN;1212;CUAN;1289;DSSA;831;BBRI;2874;BBRI
 
                 if (!data.series) return;
 
-                data.series.forEach(series => {
-                    let isSelected = false;
-                    let opacity = "0.85";
+                data.series.forEach(function(series) {
+                    var isSelected = false;
+                    var opacity = "0.85";
                     
                     if (activeTicker !== null) {
                         isSelected = (activeTicker === series.ticker);
                         opacity = isSelected ? "1" : "0.1";
                     }
 
-                    const lineWidth = isSelected ? "6" : "2";
-                    const circleRadius = isSelected ? "7" : "4";
-                    const textColor = isSelected ? "#ffffff" : "#e4e4e7";
-                    const textWeight = isSelected ? "bold" : "normal";
+                    var lineWidth = isSelected ? "6" : "2";
+                    var circleRadius = isSelected ? "7" : "4";
+                    var textColor = isSelected ? "#ffffff" : "#e4e4e7";
+                    var textWeight = isSelected ? "bold" : "normal";
 
-                    const refs = elementRefs[series.ticker];
+                    var refs = elementRefs[series.ticker];
                     
-                    refs.lines.forEach(el => {
+                    refs.lines.forEach(function(el) {
                         el.setAttribute("opacity", opacity);
                         el.setAttribute("stroke-width", lineWidth);
-                        if (isSelected) el.parentNode.parentNode.appendChild(el.parentNode);
+                        if (isSelected && el.parentNode && el.parentNode.parentNode) {
+                            el.parentNode.parentNode.appendChild(el.parentNode);
+                        }
                     });
 
-                    refs.points.forEach(el => {
+                    refs.points.forEach(function(el) {
                         el.setAttribute("opacity", opacity);
                         el.setAttribute("r", circleRadius);
                     });
 
-                    refs.texts.forEach(el => {
+                    refs.texts.forEach(function(el) {
                         el.setAttribute("opacity", opacity);
                         el.setAttribute("fill", textColor);
                         el.setAttribute("font-weight", textWeight);
                     });
 
                     // --- FITUR BARU: MENAMPILKAN HARGA KETIKA DIKLIK ---
-                    refs.priceTexts.forEach(el => {
+                    refs.priceTexts.forEach(function(el) {
                         el.setAttribute("opacity", isSelected ? "1" : "0");
                     });
                     
                     if(isSelected && refs.points.length > 0) {
-                         const group = refs.points[0].parentNode;
-                         group.parentNode.appendChild(group);
+                         var group = refs.points[0].parentNode;
+                         if(group && group.parentNode) {
+                             group.parentNode.appendChild(group);
+                         }
                     }
                 });
             }
