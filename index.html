@@ -132,37 +132,33 @@
       border-radius: var(--radius-xl); box-shadow: 0 30px 60px rgba(0,0,0,0.5);
     }
     
-    /* UPDATE: Tekstur & Pencahayaan Metalik Lebih Realistis Sesuai Gambar */
+    /* UPDATE: Tekstur Polos + Grid seperti Referensi (Tanpa Garis Silau Statis) */
     .card-front {
-      background-color: #a05a4a; /* Warna dasar rose gold / copper */
+      background-color: #aa6555; 
       background-image: 
-        /* Sorotan cahaya statis diagonal */
-        linear-gradient(110deg, transparent 25%, rgba(255,255,255,0.3) 40%, rgba(255,255,255,0.7) 50%, rgba(255,255,255,0.3) 60%, transparent 75%),
-        /* Tekstur grid/mesh vertikal & horizontal halus */
-        repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(0,0,0,0.06) 1px, rgba(0,0,0,0.06) 2px),
-        repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(0,0,0,0.06) 1px, rgba(0,0,0,0.06) 2px),
-        /* Gradien radial gelap-terang untuk kedalaman warna */
-        radial-gradient(circle at 50% 50%, #c47665, #63332a);
-      border: 1px solid rgba(255,255,255,0.15);
+        repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(0,0,0,0.05) 1px, rgba(0,0,0,0.05) 2px),
+        repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(0,0,0,0.05) 1px, rgba(0,0,0,0.05) 2px),
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.1), rgba(0,0,0,0.25));
+      border: 1px solid rgba(255,255,255,0.1);
       display: flex; align-items: center; justify-content: center; overflow: hidden;
     }
     
-    /* UPDATE: Animasi Shimmer yang bergerak menimpa tekstur statis */
+    /* Animasi Shimmer yang sesekali lewat */
     .shimmer {
       position: absolute; top: 0; left: -150%; width: 100%; height: 100%;
       background: linear-gradient(110deg, 
         rgba(255,255,255,0) 0%, 
-        rgba(255,255,255,0.1) 40%, 
-        rgba(255,255,255,0.6) 50%, 
-        rgba(255,255,255,0.1) 60%, 
+        rgba(255,255,255,0.03) 40%, 
+        rgba(255,255,255,0.4) 50%, 
+        rgba(255,255,255,0.03) 60%, 
         rgba(255,255,255,0) 100%);
       transform: skewX(-20deg); 
-      animation: shimmer 4s infinite cubic-bezier(0.4, 0, 0.2, 1);
+      animation: shimmer 5s infinite cubic-bezier(0.4, 0, 0.2, 1);
       pointer-events: none;
     }
     @keyframes shimmer { 
       0% { left: -150%; }
-      50%, 100% { left: 150%; } 
+      40%, 100% { left: 150%; } /* Lewat perlahan, jeda lebih lama */
     }
     
     .card-back {
@@ -257,11 +253,12 @@
     .manifesto-closing .highlight { color: var(--coral); text-shadow: 0 0 20px rgba(255, 129, 88, 0.5); }
 
     /* TIME TUNNEL 3D */
-    .time-tunnel-section { height: 400vh; background: var(--bg-dark); }
+    /* Diperpanjang menjadi 500vh agar animasi "satu per satu" berjalan mulus tanpa kecepatan berlebih */
+    .time-tunnel-section { height: 500vh; background: var(--bg-dark); }
     .time-tunnel { height: 100vh; position: sticky; top: 0; overflow: hidden; perspective: 1200px; display: flex; align-items: center; justify-content: center;}
     
     .tunnel-item { 
-      position: absolute; opacity: 1; /* UPDATE: Solid opacity dari awal */
+      position: absolute; opacity: 0; /* Default semua disembunyikan sepenuhnya */
       color: white; display: flex; flex-direction: column; align-items: center;
       background: #ffffff; padding: 16px 16px 32px 16px; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.4);
       width: 300px;
@@ -690,42 +687,49 @@
       }
     });
 
-    // 7. Time Tunnel 3D (UPDATE: Opacity Fixes)
+    // 7. Time Tunnel 3D (UPDATE: Muncul satu per satu persis urutan logis)
     let timeTl = gsap.timeline({
       scrollTrigger: {
         trigger: ".time-tunnel-section",
         start: "top top",
-        end: "+=250%",
+        end: "+=400%", // Jarak scroll dipanjangkan agar sekuens nyaman
         scrub: true,
         pin: true
       }
     });
     
-    // UPDATE: Atur opacity menjadi 1 (solid) sejak titik paling awal. 
-    // Kartu tidak memiliki transparansi selama berada di lorong.
+    // Setup Awal (Set di belakang, HANYA KARTU 1 YANG MUNCUL)
     gsap.set(".tunnel-item", { top: "50%", left: "50%", xPercent: -50, yPercent: -50 });
-    gsap.set(".tunnel-item:nth-child(1)", { z: -500, x: -100, rotation: -5, opacity: 1, scale: 0.8 }); 
-    gsap.set(".tunnel-item:nth-child(2)", { z: -1000, x: 100, rotation: 8, opacity: 1, scale: 0.8 });  
-    gsap.set(".tunnel-item:nth-child(3)", { z: -1500, x: -100, rotation: -3, opacity: 1, scale: 0.8 }); 
+    gsap.set(".tunnel-item:nth-child(1)", { z: -800, x: -50, rotation: -5, opacity: 1, scale: 0.8 }); 
+    gsap.set(".tunnel-item:nth-child(2)", { z: -800, x: 50, rotation: 8, opacity: 0, scale: 0.8 });  
+    gsap.set(".tunnel-item:nth-child(3)", { z: -800, x: -50, rotation: -3, opacity: 0, scale: 0.8 }); 
     gsap.set(".tunnel-title", { z: -800, opacity: 0, top: "50%", left: "50%", xPercent: -50, yPercent: -50 });
 
-    // Animasi Timeline: Maju & Membesar -> Terbang Hilang & memudar
-    // (Animasi opacity:1 yang sebelumnya men-trigger dari 0 telah dihapus)
+    // --- TIMELINE SEQUENTIAL ---
     
-    // Foto 1
-    timeTl.to(".tunnel-item:nth-child(1)", { z: 0, scale: 1.4, duration: 1.5 }, 0)
-          .to(".tunnel-item:nth-child(1)", { z: 500, scale: 1.6, x: -1200, opacity: 0, duration: 1 }, 1.2) // Mulai transparan HANYA saat terlempar kesamping
+    // KARTU 1: Mendekat dan membesar
+    timeTl.to(".tunnel-item:nth-child(1)", { z: 0, scale: 1.5, duration: 1.5 }, 0)
+    // KARTU 1: Terhempas (menghilang kiri) // Waktu: 1.2
+          .to(".tunnel-item:nth-child(1)", { z: 500, scale: 1.8, x: -1200, opacity: 0, duration: 1 }, 1.2)
           
-    // Foto 2
-          .to(".tunnel-item:nth-child(2)", { z: 0, scale: 1.4, duration: 1.5 }, 0.8)
-          .to(".tunnel-item:nth-child(2)", { z: 500, scale: 1.6, x: 1200, opacity: 0, duration: 1 }, 2.0)
+    // KARTU 2: Baru muncul (opacity 1) BERSAMAAN SAAT KARTU 1 mulai terhempas // Waktu: 1.2
+          .to(".tunnel-item:nth-child(2)", { opacity: 1, duration: 0.5 }, 1.2)
+    // KARTU 2: Mendekat dan membesar // Waktu: 1.2
+          .to(".tunnel-item:nth-child(2)", { z: 0, scale: 1.5, duration: 1.5 }, 1.2)
           
-    // Foto 3
-          .to(".tunnel-item:nth-child(3)", { z: 0, scale: 1.4, duration: 1.5 }, 1.6)
-          .to(".tunnel-item:nth-child(3)", { z: 500, scale: 1.6, x: -1200, opacity: 0, duration: 1 }, 2.8)
+    // KARTU 2: Terhempas (menghilang kanan) // Waktu: 2.4
+          .to(".tunnel-item:nth-child(2)", { z: 500, scale: 1.8, x: 1200, opacity: 0, duration: 1 }, 2.4)
           
-    // Judul
-          .to(".tunnel-title", { z: 0, opacity: 1, scale: 1, duration: 1.5 }, 3.0);
+    // KARTU 3: Baru muncul (opacity 1) BERSAMAAN SAAT KARTU 2 mulai terhempas // Waktu: 2.4
+          .to(".tunnel-item:nth-child(3)", { opacity: 1, duration: 0.5 }, 2.4)
+    // KARTU 3: Mendekat dan membesar // Waktu: 2.4
+          .to(".tunnel-item:nth-child(3)", { z: 0, scale: 1.5, duration: 1.5 }, 2.4)
+          
+    // KARTU 3: Terhempas (menghilang kiri) // Waktu: 3.6
+          .to(".tunnel-item:nth-child(3)", { z: 500, scale: 1.8, x: -1200, opacity: 0, duration: 1 }, 3.6)
+          
+    // JUDUL AKHIR: Muncul bersamaan saat kartu terakhir terhempas // Waktu: 3.8
+          .to(".tunnel-title", { z: 0, opacity: 1, scale: 1, duration: 1.5 }, 3.8);
 
     // 8. Global Reveal Animation
     gsap.utils.toArray('.reveal').forEach(element => {
