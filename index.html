@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Entrepreneur Portfolio</title>
   
-  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=JetBrains+Mono:wght@400;700&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
@@ -154,7 +153,7 @@
     @keyframes float { 50% { transform: translateY(-15px); } }
 
     /* 50M SECTION - DIVE WARP 3D */
-    .warp-section { height: 200vh; position: relative; background: #000; overflow: hidden; }
+    .warp-section { height: 130vh; position: relative; background: #000; overflow: hidden; }
     .warp-container { height: 100vh; position: sticky; top: 0; display: flex; align-items: center; justify-content: center; perspective: 1000px;}
     .tunnel { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100vw; height: 100vh; transform-style: preserve-3d; }
     .ring { position: absolute; top: 50%; left: 50%; width: 100vmin; height: 100vmin; border: 2px solid rgba(255, 77, 138, 0.2); border-radius: 50%; transform: translate(-50%, -50%); }
@@ -168,11 +167,15 @@
     .section-header .tag { font-family: var(--font-mono); font-size: 14px; color: var(--coral); }
     .section-header h2 { font-size: 4rem; font-weight: 900; letter-spacing: -2px; margin: 10px 0; }
     .section-header h3 { font-family: var(--font-serif); font-size: 1.5rem; font-style: italic; opacity: 0.7; }
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1000px; margin: auto; }
-    .foto-card { position: relative; aspect-ratio: 1/1; border-radius: var(--radius-lg); overflow: hidden; }
-    .foto-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; max-width: 1000px; margin: auto; perspective: 1000px; }
+    
+    .foto-card { 
+      position: relative; aspect-ratio: 1/1; border-radius: var(--radius-lg); overflow: hidden; 
+      transition: transform 0.1s ease, box-shadow 0.3s ease; transform-style: preserve-3d;
+    }
+    .foto-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); pointer-events: none;}
     .foto-card:hover img { transform: scale(1.08); }
-    .foto-caption { position: absolute; bottom: 16px; left: 16px; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); padding: 8px 16px; border-radius: 50px; color: white; font-size: 12px; font-weight: 600; }
+    .foto-caption { position: absolute; bottom: 16px; left: 16px; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); padding: 8px 16px; border-radius: 50px; color: white; font-size: 12px; font-weight: 600; transform: translateZ(20px); }
     
     /* ABOUT - KINETIC MANIFESTO */
     .about { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 0 5%; }
@@ -184,7 +187,17 @@
     /* TIME TUNNEL 3D */
     .time-tunnel-section { height: 300vh; background: var(--bg-dark); }
     .time-tunnel { height: 100vh; position: sticky; top: 0; overflow: hidden; perspective: 1200px; display: flex; align-items: center; justify-content: center;}
-    .tunnel-item { position: absolute; font-size: 4rem; font-weight: 900; opacity: 0.1; color: white; }
+    
+    /* Polaroid Style for Journey Media */
+    .tunnel-item { 
+      position: absolute; opacity: 0; color: white; display: flex; flex-direction: column; align-items: center;
+      background: #ffffff; padding: 16px 16px 32px 16px; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      width: 260px; transform: translateZ(-2000px);
+    }
+    .tunnel-item img { width: 100%; height: 200px; object-fit: cover; border-radius: 4px; margin-bottom: 16px; }
+    .tunnel-item .polaroid-caption {
+      font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: #1a1a1a; text-align: center;
+    }
     .tunnel-title { font-size: 6rem; font-weight: 900; z-index: 10; opacity: 0; transform: translateZ(-2000px); text-align: center; }
 
     /* JOURNEY - TIMELINE CARDS */
@@ -196,12 +209,12 @@
       border-radius: var(--radius-lg); padding: 32px; position: relative; overflow: hidden;
       transition: transform 0.3s ease; transform-style: preserve-3d;
     }
-    .journey-card::before { /* Spinning Gradient Border Effect */
+    .journey-card::before { 
       content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
       background: conic-gradient(transparent, transparent, transparent, var(--pink));
       animation: spin 4s linear infinite; opacity: 0; transition: opacity 0.3s; z-index: 0;
     }
-    .journey-card::after { /* Inner block to hide spin center */
+    .journey-card::after { 
       content: ''; position: absolute; inset: 2px; background: #131018; border-radius: calc(var(--radius-lg) - 2px); z-index: 1;
     }
     .journey-card:hover::before { opacity: 1; }
@@ -237,9 +250,9 @@
     .link-card {
       background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
       padding: 24px; border-radius: 20px; display: flex; flex-direction: column; align-items: flex-start;
-      transition: all 0.3s ease; text-align: left; cursor: pointer;
+      transition: all 0.1s ease, border-color 0.3s ease; text-align: left; cursor: pointer; transform-style: preserve-3d;
     }
-    .link-card:hover { transform: translateY(-5px); border-color: rgba(255,255,255,0.3); }
+    .link-card:hover { border-color: rgba(255,255,255,0.3); }
     .icon-box { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; margin-bottom: 20px; }
     .ig-box { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
     .wa-box { background: #25D366; }
@@ -279,13 +292,11 @@
 </head>
 <body>
 
-  <!-- Grain & Global Effects -->
   <div class="grain"></div>
   <div class="radial-glow"></div>
   <div id="progress-bar"></div>
   <div id="toast">✨ Thanks for visiting! ✨</div>
 
-  <!-- Header -->
   <header class="glass" id="header">
     <div class="logo-container">
       <div class="logo-box">CN</div>
@@ -304,7 +315,6 @@
     <div class="hamburger">☰</div>
   </header>
 
-  <!-- Hero Section -->
   <section class="hero" id="home">
     <div class="hero-content">
       <div class="hero-text reveal">
@@ -317,7 +327,6 @@
         <div class="flip-card">
           <div class="card-face card-front">
             <div class="shimmer"></div>
-            <!-- Empty metallic front -->
           </div>
           <div class="card-face card-back">
             <div class="stat-card stat-1">10+ Years<br>Hustle</div>
@@ -328,7 +337,6 @@
     </div>
   </section>
 
-  <!-- 50M Warp Section -->
   <section class="warp-section">
     <div class="warp-container">
       <div class="tunnel">
@@ -344,7 +352,6 @@
     </div>
   </section>
 
-  <!-- Gallery & Theme Switch -->
   <section class="gallery" id="gallery">
     <div class="section-header reveal">
       <span class="tag">01 / VISIONS</span>
@@ -352,18 +359,17 @@
       <h3>Crafting experiences beyond code & capital</h3>
     </div>
     <div class="grid-2">
-      <div class="foto-card reveal">
+      <div class="foto-card reveal tilt">
         <img src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=800&q=80" alt="Office">
         <div class="foto-caption">The War Room</div>
       </div>
-      <div class="foto-card reveal">
+      <div class="foto-card reveal tilt">
         <img src="https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=800&q=80" alt="Architecture">
         <div class="foto-caption">Structural Foundations</div>
       </div>
     </div>
   </section>
 
-  <!-- About - Kinetic Manifesto -->
   <section class="about" id="about">
     <div class="manifesto">
       <p id="kinetic-text">
@@ -373,17 +379,24 @@
     </div>
   </section>
 
-  <!-- Time Tunnel -->
   <section class="time-tunnel-section">
     <div class="time-tunnel">
-      <div class="tunnel-item" style="top: 20%; left: 10%; transform: translateZ(-500px);">2011</div>
-      <div class="tunnel-item" style="top: 70%; right: 15%; transform: translateZ(-1500px);">2018</div>
-      <div class="tunnel-item" style="top: 40%; left: 20%; transform: translateZ(-2500px);">2022</div>
+      <div class="tunnel-item" style="top: 20%; left: 15%;">
+        <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=400&q=80" alt="2015 Hub">
+        <div class="polaroid-caption">Jun-'15 · Ideation</div>
+      </div>
+      <div class="tunnel-item" style="top: 55%; right: 15%;">
+        <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=400&q=80" alt="2019 Scale">
+        <div class="polaroid-caption">Mar-'19 · Scaling Up</div>
+      </div>
+      <div class="tunnel-item" style="top: 30%; left: 30%;">
+        <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=400&q=80" alt="2023 Next">
+        <div class="polaroid-caption">Oct-'23 · Nexus Inc.</div>
+      </div>
       <div class="tunnel-title">The Journey</div>
     </div>
   </section>
 
-  <!-- Journey Timeline -->
   <section class="journey" id="journey">
     <div class="scrubber">
       <span>2015</span> &mdash; <span>2019</span> &mdash; <span>2023</span> &mdash; <span>NOW</span>
@@ -430,7 +443,6 @@
     </div>
   </section>
 
-  <!-- Contact Section -->
   <section class="contact" id="contact">
     <div class="contact-card reveal">
       <div class="contact-glow"></div>
@@ -441,7 +453,6 @@
           
           <a href="#" class="link-card tilt" onclick="haptic()">
             <div class="icon-box ig-box">
-              <!-- Simple SVG IG -->
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
             </div>
             <span class="label">Daily Hustle</span>
@@ -469,13 +480,11 @@
     </div>
   </section>
 
-  <!-- Footer -->
   <footer>
     <div>Charis Nicholas © 2024</div>
     <div class="mono">Built with care & coffee.</div>
   </footer>
 
-  <!-- Scripts: GSAP & Canvas Confetti -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -497,44 +506,44 @@
       toggleClass: {className: 'glass', targets: 'header'}
     });
 
-    // 3. Hero Flip Card Animation
+    // 3. Hero Flip Card Animation (PERBAIKAN: durasi dipersingkat agar langsung flip 180° di awal scroll)
     if (window.matchMedia("(min-width: 992px)").matches) {
       gsap.to(".flip-card", {
         rotateY: 180,
-        ease: "none",
+        ease: "power1.out",
         scrollTrigger: {
           trigger: ".hero",
           start: "top top",
-          end: "+=100%",
+          end: "+=30%", // Dipendekkan dari 100% ke 30% agar selesai flip dengan sedikit scroll
           scrub: true,
           pin: true
         }
       });
     }
 
-    // 4. 50M Dive Warp 3D Animation & Count Up
+    // 4. 50M Dive Warp 3D Animation (PERBAIKAN: Sensitivitas scroll disesuaikan agar langsung trigger di awal masuk)
     let warpTl = gsap.timeline({
       scrollTrigger: {
         trigger: ".warp-section",
         start: "top top",
-        end: "+=150%",
+        end: "+=50%", // Diperpendek dari 150% agar efek lorong selesai sangat cepat saat di-scroll
         scrub: true,
         pin: true,
         onLeave: () => fireConfetti()
       }
     });
 
-    warpTl.to(".ring", { translateZ: "0px", scale: 2, opacity: 0, stagger: 0.1, duration: 1 })
-          .to(".warp-text", { translateZ: "0px", opacity: 1, duration: 1 }, "-=1");
+    warpTl.to(".ring", { translateZ: "0px", scale: 2, opacity: 0, stagger: 0.05, duration: 0.5 })
+          .to(".warp-text", { translateZ: "0px", opacity: 1, duration: 0.5 }, "-=0.5");
 
     // Counter Animation
     ScrollTrigger.create({
       trigger: ".warp-section",
-      start: "bottom 80%",
+      start: "top 20%", // Ditinggikan pemicunya agar hitung angka langsung mulai berbarengan dengan sedikit scroll
       onEnter: () => {
         let countObj = { val: 0 };
         gsap.to(countObj, {
-          val: 50, duration: 2, ease: "power2.out",
+          val: 50, duration: 1.5, ease: "power2.out",
           onUpdate: () => document.getElementById("counter").innerText = `Rp ${Math.floor(countObj.val)} Miliyar`
         });
       }
@@ -555,7 +564,6 @@
     words.forEach(word => {
       let span = document.createElement("span");
       span.className = "word";
-      // preserve highlight class for the last part
       if (word.includes("We") || word.includes("build") || word.includes("it.")) {
          if(word.includes("build")) span.classList.add("highlight");
       }
@@ -574,7 +582,7 @@
       }
     });
 
-    // 7. Time Tunnel 3D
+    // 7. Time Tunnel 3D (PERBAIKAN: Menembus polaroid dengan struktur sumbu Z)
     let timeTl = gsap.timeline({
       scrollTrigger: {
         trigger: ".time-tunnel-section",
@@ -584,8 +592,20 @@
         pin: true
       }
     });
-    timeTl.to(".tunnel-item", { translateZ: "500px", opacity: 0.5, stagger: 0.2, duration: 2 })
-          .to(".tunnel-title", { translateZ: "0px", opacity: 1, scale: 1, duration: 2 }, "-=1");
+    
+    // Distribusikan kedalaman awal polaroid di sumbu Z secara variatif
+    gsap.set(".tunnel-item:nth-child(1)", { transform: "translateZ(-800px) rotate(-5deg)" });
+    gsap.set(".tunnel-item:nth-child(2)", { transform: "translateZ(-1600px) rotate(8deg)" });
+    gsap.set(".tunnel-item:nth-child(3)", { transform: "translateZ(-2400px) rotate(-3deg)" });
+
+    timeTl.to(".tunnel-item", { 
+            translateZ: "800px", 
+            opacity: 1, 
+            stagger: 0.4, 
+            duration: 2, 
+            ease: "none" 
+          })
+          .to(".tunnel-title", { translateZ: "0px", opacity: 1, scale: 1, duration: 1 }, "-=0.5");
 
     // 8. Global Reveal Animation (Fade up)
     gsap.utils.toArray('.reveal').forEach(element => {
@@ -597,7 +617,7 @@
       );
     });
 
-    // 9. 3D Tilt Effect on Cards (Mouse movement)
+    // 9. 3D Tilt Effect on Cards (PERBAIKAN: Diaplikasikan ke elemen kelas '.tilt' termasuk Galeri Foto)
     const tiltCards = document.querySelectorAll('.tilt');
     tiltCards.forEach(card => {
       card.addEventListener('mousemove', (e) => {
@@ -606,34 +626,34 @@
         const y = e.clientY - rect.top;
         const centerX = rect.width / 2;
         const centerY = rect.height / 2;
-        const rotateX = ((y - centerY) / centerY) * -10; // Max 10 deg
-        const rotateY = ((x - centerX) / centerX) * 10;
+        const rotateX = ((y - centerY) / centerY) * -12; // Maksimal rotasi 12 derajat
+        const rotateY = ((x - centerX) / centerX) * 12;
         
         card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+        card.style.boxShadow = "0 20px 40px rgba(0,0,0,0.3)";
       });
       card.addEventListener('mouseleave', () => {
         card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+        card.style.boxShadow = "none";
       });
     });
 
-    // 10. Haptic Feedback function for buttons
+    // 10. Haptic Feedback
     function haptic() {
       if (window.navigator && window.navigator.vibrate) {
         window.navigator.vibrate(50);
       }
     }
 
-    // 11. Easter Egg: Confetti
+    // 11. Easter Egg & Confetti Trigger
     function fireConfetti() {
       confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#ff4d8a', '#ff8158', '#ffffff'] });
     }
 
-    // Pull to Refresh Easter Egg Logic
     let touchStartY = 0;
     window.addEventListener('touchstart', e => touchStartY = e.touches[0].clientY);
     window.addEventListener('touchend', e => {
       let touchEndY = e.changedTouches[0].clientY;
-      // If at top of page and pulled down significantly
       if (window.scrollY === 0 && (touchEndY - touchStartY > 150)) {
         fireConfetti();
         haptic();
