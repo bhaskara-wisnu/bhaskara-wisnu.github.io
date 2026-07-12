@@ -131,15 +131,40 @@
       position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
       border-radius: var(--radius-xl); box-shadow: 0 30px 60px rgba(0,0,0,0.5);
     }
+    
+    /* UPDATE: Tekstur & Pencahayaan Metalik Lebih Realistis Sesuai Gambar */
     .card-front {
-      background: linear-gradient(135deg, #ffd1dc, #e8a5b2);
+      background-color: #a05a4a; /* Warna dasar rose gold / copper */
+      background-image: 
+        /* Sorotan cahaya statis diagonal */
+        linear-gradient(110deg, transparent 25%, rgba(255,255,255,0.3) 40%, rgba(255,255,255,0.7) 50%, rgba(255,255,255,0.3) 60%, transparent 75%),
+        /* Tekstur grid/mesh vertikal & horizontal halus */
+        repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(0,0,0,0.06) 1px, rgba(0,0,0,0.06) 2px),
+        repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(0,0,0,0.06) 1px, rgba(0,0,0,0.06) 2px),
+        /* Gradien radial gelap-terang untuk kedalaman warna */
+        radial-gradient(circle at 50% 50%, #c47665, #63332a);
+      border: 1px solid rgba(255,255,255,0.15);
       display: flex; align-items: center; justify-content: center; overflow: hidden;
     }
+    
+    /* UPDATE: Animasi Shimmer yang bergerak menimpa tekstur statis */
     .shimmer {
-      position: absolute; top: 0; left: -150%; width: 50%; height: 100%;
-      background: rgba(255,255,255,0.4); transform: skewX(-20deg); animation: shimmer 3s infinite;
+      position: absolute; top: 0; left: -150%; width: 100%; height: 100%;
+      background: linear-gradient(110deg, 
+        rgba(255,255,255,0) 0%, 
+        rgba(255,255,255,0.1) 40%, 
+        rgba(255,255,255,0.6) 50%, 
+        rgba(255,255,255,0.1) 60%, 
+        rgba(255,255,255,0) 100%);
+      transform: skewX(-20deg); 
+      animation: shimmer 4s infinite cubic-bezier(0.4, 0, 0.2, 1);
+      pointer-events: none;
     }
-    @keyframes shimmer { 100% { left: 150%; } }
+    @keyframes shimmer { 
+      0% { left: -150%; }
+      50%, 100% { left: 150%; } 
+    }
+    
     .card-back {
       background: url('https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&w=800&q=80') center/cover;
       transform: rotateY(180deg);
@@ -153,7 +178,7 @@
     .stat-2 { bottom: -20px; right: -30px; animation: float 5s ease-in-out infinite reverse; }
     @keyframes float { 50% { transform: translateY(-15px); } }
 
-    /* MARQUEE / RUNNING TEXT (Perbaikan 1 baris Fix & Animate Always) */
+    /* MARQUEE / RUNNING TEXT */
     .marquee-section {
       width: 100%;
       background: rgba(10, 8, 16, 0.6);
@@ -168,13 +193,11 @@
     }
     .marquee-content {
       display: flex;
-      flex-wrap: nowrap; /* Memaksa 1 baris */
+      flex-wrap: nowrap; 
       width: max-content;
-      animation: marquee 25s linear infinite !important; /* Memaksa selalu berjalan */
+      animation: marquee 25s linear infinite !important;
     }
-    .marquee-content > * {
-      flex-shrink: 0; /* Mencegah item tertekan */
-    }
+    .marquee-content > * { flex-shrink: 0; }
     .marquee-group {
       display: flex;
       align-items: center;
@@ -238,9 +261,10 @@
     .time-tunnel { height: 100vh; position: sticky; top: 0; overflow: hidden; perspective: 1200px; display: flex; align-items: center; justify-content: center;}
     
     .tunnel-item { 
-      position: absolute; opacity: 0; color: white; display: flex; flex-direction: column; align-items: center;
+      position: absolute; opacity: 1; /* UPDATE: Solid opacity dari awal */
+      color: white; display: flex; flex-direction: column; align-items: center;
       background: #ffffff; padding: 16px 16px 32px 16px; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-      width: 300px; /* Diperbesar dari 260px sebelumnya */
+      width: 300px;
     }
     .tunnel-item img { width: 100%; height: 220px; object-fit: cover; border-radius: 4px; margin-bottom: 16px; }
     .tunnel-item .polaroid-caption {
@@ -260,7 +284,7 @@
       transition: transform 0.1s ease; transform-style: preserve-3d;
     }
     
-    /* Efek Spotlight Mengikuti Mouse */
+    /* Spotlight Hover */
     .journey-card::before {
       content: "";
       position: absolute;
@@ -275,9 +299,7 @@
       z-index: 0;
       pointer-events: none;
     }
-    .journey-card:hover::before {
-      opacity: 1; 
-    }
+    .journey-card:hover::before { opacity: 1; }
     
     .card-content { position: relative; z-index: 2; pointer-events: none; } 
     .card-year { font-size: 3rem; font-weight: 900; opacity: 0.2; position: absolute; top: 0; right: 0; }
@@ -340,12 +362,11 @@
       .manifesto { font-size: 1.5rem; }
     }
     
-    /* PREFERS REDUCED MOTION - MARQUEE DIKECUALIKAN AGAR TETAP JALAN */
+    /* PREFERS REDUCED MOTION */
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
       .time-tunnel-section, .warp-section { height: auto; }
       .warp-text { opacity: 1; transform: none; }
-      /* Jangan tambahkan ".marquee-content { animation: none }" di sini, agar tetap berjalan */
     }
   </style>
 </head>
@@ -669,35 +690,38 @@
       }
     });
 
-    // 7. Time Tunnel 3D (Jarak diperdekat & Skala diperbesar sebelum hilang)
+    // 7. Time Tunnel 3D (UPDATE: Opacity Fixes)
     let timeTl = gsap.timeline({
       scrollTrigger: {
         trigger: ".time-tunnel-section",
         start: "top top",
-        end: "+=250%", // Jarak scroll dipersingkat agar elemen muncul lebih rapat
+        end: "+=250%",
         scrub: true,
         pin: true
       }
     });
     
-    // Posisi awal diperpendek jarak (Z) nya
+    // UPDATE: Atur opacity menjadi 1 (solid) sejak titik paling awal. 
+    // Kartu tidak memiliki transparansi selama berada di lorong.
     gsap.set(".tunnel-item", { top: "50%", left: "50%", xPercent: -50, yPercent: -50 });
-    gsap.set(".tunnel-item:nth-child(1)", { z: -500, x: -100, rotation: -5, opacity: 0, scale: 0.8 }); // Kiri
-    gsap.set(".tunnel-item:nth-child(2)", { z: -1000, x: 100, rotation: 8, opacity: 0, scale: 0.8 });  // Kanan
-    gsap.set(".tunnel-item:nth-child(3)", { z: -1500, x: -100, rotation: -3, opacity: 0, scale: 0.8 }); // Kiri
+    gsap.set(".tunnel-item:nth-child(1)", { z: -500, x: -100, rotation: -5, opacity: 1, scale: 0.8 }); 
+    gsap.set(".tunnel-item:nth-child(2)", { z: -1000, x: 100, rotation: 8, opacity: 1, scale: 0.8 });  
+    gsap.set(".tunnel-item:nth-child(3)", { z: -1500, x: -100, rotation: -3, opacity: 1, scale: 0.8 }); 
     gsap.set(".tunnel-title", { z: -800, opacity: 0, top: "50%", left: "50%", xPercent: -50, yPercent: -50 });
 
-    // Animasi Timeline: Maju & Membesar -> Terbang Hilang 
+    // Animasi Timeline: Maju & Membesar -> Terbang Hilang & memudar
+    // (Animasi opacity:1 yang sebelumnya men-trigger dari 0 telah dihapus)
+    
     // Foto 1
-    timeTl.to(".tunnel-item:nth-child(1)", { z: 0, scale: 1.4, opacity: 1, duration: 1.5 }, 0)
-          .to(".tunnel-item:nth-child(1)", { z: 500, scale: 1.6, x: -1200, opacity: 0, duration: 1 }, 1.2) // Mulai terbang sesaat setelah puncaknya
+    timeTl.to(".tunnel-item:nth-child(1)", { z: 0, scale: 1.4, duration: 1.5 }, 0)
+          .to(".tunnel-item:nth-child(1)", { z: 500, scale: 1.6, x: -1200, opacity: 0, duration: 1 }, 1.2) // Mulai transparan HANYA saat terlempar kesamping
           
-    // Foto 2 (mulai sedikit lebih awal dari 1.5 agar rapat)
-          .to(".tunnel-item:nth-child(2)", { z: 0, scale: 1.4, opacity: 1, duration: 1.5 }, 0.8)
+    // Foto 2
+          .to(".tunnel-item:nth-child(2)", { z: 0, scale: 1.4, duration: 1.5 }, 0.8)
           .to(".tunnel-item:nth-child(2)", { z: 500, scale: 1.6, x: 1200, opacity: 0, duration: 1 }, 2.0)
           
     // Foto 3
-          .to(".tunnel-item:nth-child(3)", { z: 0, scale: 1.4, opacity: 1, duration: 1.5 }, 1.6)
+          .to(".tunnel-item:nth-child(3)", { z: 0, scale: 1.4, duration: 1.5 }, 1.6)
           .to(".tunnel-item:nth-child(3)", { z: 500, scale: 1.6, x: -1200, opacity: 0, duration: 1 }, 2.8)
           
     // Judul
