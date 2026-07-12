@@ -152,6 +152,50 @@
     .stat-2 { bottom: -20px; right: -30px; animation: float 5s ease-in-out infinite reverse; }
     @keyframes float { 50% { transform: translateY(-15px); } }
 
+    /* MARQUEE / RUNNING TEXT SECTION */
+    .marquee-section {
+      width: 100vw;
+      background: rgba(10, 8, 16, 0.6);
+      border-top: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      padding: 24px 0;
+      overflow: hidden;
+      display: flex;
+      white-space: nowrap;
+      position: relative;
+      z-index: 50;
+      backdrop-filter: blur(5px);
+    }
+    .marquee-content {
+      display: flex;
+      width: max-content;
+      animation: marquee 30s linear infinite;
+    }
+    .marquee-group {
+      display: flex;
+      align-items: center;
+      gap: 40px;
+      padding-right: 40px;
+    }
+    .marquee-group span {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: rgba(255, 255, 255, 0.75);
+      letter-spacing: -0.5px;
+    }
+    .marquee-group .dot {
+      width: 6px;
+      height: 6px;
+      background: var(--gradient);
+      border-radius: 50%;
+      display: inline-block;
+      box-shadow: 0 0 10px rgba(255, 77, 138, 0.8);
+    }
+    @keyframes marquee {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
     /* 50M SECTION - DIVE WARP 3D */
     .warp-section { height: 130vh; position: relative; background: #000; overflow: hidden; }
     .warp-container { height: 100vh; position: sticky; top: 0; display: flex; align-items: center; justify-content: center; perspective: 1000px;}
@@ -287,6 +331,7 @@
       * { animation: none !important; transition: none !important; }
       .time-tunnel-section, .warp-section { height: auto; }
       .warp-text { opacity: 1; transform: none; }
+      .marquee-content { animation: none; justify-content: center; flex-wrap: wrap; white-space: normal; }
     }
   </style>
 </head>
@@ -333,6 +378,29 @@
             <div class="stat-card stat-2">3 Exits<br>Acquired</div>
           </div>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="marquee-section">
+    <div class="marquee-content">
+      <div class="marquee-group">
+        <span>E-commerce</span> <span class="dot"></span>
+        <span>Sales Funnel</span> <span class="dot"></span>
+        <span>Web Development</span> <span class="dot"></span>
+        <span>Business Model</span> <span class="dot"></span>
+        <span>Meta Ads</span> <span class="dot"></span>
+        <span>Performance Marketing</span> <span class="dot"></span>
+        <span>Digital Strategy</span> <span class="dot"></span>
+      </div>
+      <div class="marquee-group">
+        <span>E-commerce</span> <span class="dot"></span>
+        <span>Sales Funnel</span> <span class="dot"></span>
+        <span>Web Development</span> <span class="dot"></span>
+        <span>Business Model</span> <span class="dot"></span>
+        <span>Meta Ads</span> <span class="dot"></span>
+        <span>Performance Marketing</span> <span class="dot"></span>
+        <span>Digital Strategy</span> <span class="dot"></span>
       </div>
     </div>
   </section>
@@ -506,7 +574,7 @@
       toggleClass: {className: 'glass', targets: 'header'}
     });
 
-    // 3. Hero Flip Card Animation (PERBAIKAN: durasi dipersingkat agar langsung flip 180° di awal scroll)
+    // 3. Hero Flip Card Animation
     if (window.matchMedia("(min-width: 992px)").matches) {
       gsap.to(".flip-card", {
         rotateY: 180,
@@ -514,19 +582,19 @@
         scrollTrigger: {
           trigger: ".hero",
           start: "top top",
-          end: "+=30%", // Dipendekkan dari 100% ke 30% agar selesai flip dengan sedikit scroll
+          end: "+=30%",
           scrub: true,
           pin: true
         }
       });
     }
 
-    // 4. 50M Dive Warp 3D Animation (PERBAIKAN: Sensitivitas scroll disesuaikan agar langsung trigger di awal masuk)
+    // 4. 50M Dive Warp 3D Animation
     let warpTl = gsap.timeline({
       scrollTrigger: {
         trigger: ".warp-section",
         start: "top top",
-        end: "+=50%", // Diperpendek dari 150% agar efek lorong selesai sangat cepat saat di-scroll
+        end: "+=50%",
         scrub: true,
         pin: true,
         onLeave: () => fireConfetti()
@@ -539,7 +607,7 @@
     // Counter Animation
     ScrollTrigger.create({
       trigger: ".warp-section",
-      start: "top 20%", // Ditinggikan pemicunya agar hitung angka langsung mulai berbarengan dengan sedikit scroll
+      start: "top 20%",
       onEnter: () => {
         let countObj = { val: 0 };
         gsap.to(countObj, {
@@ -582,7 +650,7 @@
       }
     });
 
-    // 7. Time Tunnel 3D (PERBAIKAN: Menembus polaroid dengan struktur sumbu Z)
+    // 7. Time Tunnel 3D
     let timeTl = gsap.timeline({
       scrollTrigger: {
         trigger: ".time-tunnel-section",
@@ -593,7 +661,6 @@
       }
     });
     
-    // Distribusikan kedalaman awal polaroid di sumbu Z secara variatif
     gsap.set(".tunnel-item:nth-child(1)", { transform: "translateZ(-800px) rotate(-5deg)" });
     gsap.set(".tunnel-item:nth-child(2)", { transform: "translateZ(-1600px) rotate(8deg)" });
     gsap.set(".tunnel-item:nth-child(3)", { transform: "translateZ(-2400px) rotate(-3deg)" });
@@ -617,7 +684,7 @@
       );
     });
 
-    // 9. 3D Tilt Effect on Cards (PERBAIKAN: Diaplikasikan ke elemen kelas '.tilt' termasuk Galeri Foto)
+    // 9. 3D Tilt Effect on Cards
     const tiltCards = document.querySelectorAll('.tilt');
     tiltCards.forEach(card => {
       card.addEventListener('mousemove', (e) => {
@@ -626,7 +693,7 @@
         const y = e.clientY - rect.top;
         const centerX = rect.width / 2;
         const centerY = rect.height / 2;
-        const rotateX = ((y - centerY) / centerY) * -12; // Maksimal rotasi 12 derajat
+        const rotateX = ((y - centerY) / centerY) * -12; 
         const rotateY = ((x - centerX) / centerX) * 12;
         
         card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
