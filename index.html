@@ -173,7 +173,7 @@
     .stat-2 { bottom: -20px; right: -30px; animation: float 5s ease-in-out infinite reverse; }
     @keyframes float { 50% { transform: translateY(-15px); } }
 
-    /* MARQUEE / RUNNING TEXT (UPDATE: Teks Seamless) */
+    /* MARQUEE / RUNNING TEXT */
     .marquee-section {
       width: 100%;
       background: rgba(10, 8, 16, 0.6);
@@ -197,7 +197,7 @@
       display: flex;
       align-items: center;
       gap: 40px;
-      padding-right: 40px; /* Padding ini krusial agar loop menyambung sempurna tanpa celah */
+      padding-right: 40px;
     }
     .marquee-group span {
       font-size: 1.1rem;
@@ -219,7 +219,7 @@
       100% { transform: translateX(-50%); }
     }
 
-    /* 50M SECTION - DIVE WARP 3D (UPDATE: Tinggi dibuat 100vh tanpa scroll berlebih) */
+    /* MONTHS EXPERIENCE WARP SECTION */
     .warp-section { height: 100vh; position: relative; background: #000; overflow: hidden; }
     .warp-container { height: 100vh; display: flex; align-items: center; justify-content: center; perspective: 1000px;}
     .tunnel { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100vw; height: 100vh; transform-style: preserve-3d; }
@@ -454,8 +454,8 @@
         <div class="ring" style="width: 150vw; height: 150vw; transform: translate(-50%, -50%) translateZ(-4000px);"></div>
       </div>
       <div class="warp-text">
-        <h2 id="counter">Rp 0 Miliyar</h2>
-        <p>Total Revenue Generated</p>
+        <h2 id="counter">0 months</h2>
+        <p>of experience as an Electrical Engineer</p>
       </div>
     </div>
   </section>
@@ -635,30 +635,37 @@
       });
     }
 
-    // 4. 50M Dive Warp 3D Animation & Counter (UPDATE: Auto-play tanpa scroll scrub)
+    // 4. Dive Warp 3D Animation & Counter Months Experience (Kalkulasi Otomatis)
     let counterObj = { val: 0 };
     const counterEl = document.getElementById("counter");
 
     let warpTl = gsap.timeline({
       scrollTrigger: {
         trigger: ".warp-section",
-        start: "top 40%", // Animasi mulai otomatis ketika bagian ini masuk sedikit ke tengah layar
+        start: "top 40%", // Animasi mulai otomatis
       }
     });
+
+    // Hitung total bulan dari 1 Nov 2020 sampai saat ini
+    const startDate = new Date("2020-11-01T00:00:00");
+    const today = new Date();
+    const totalMonths = (today.getFullYear() - startDate.getFullYear()) * 12 + (today.getMonth() - startDate.getMonth());
 
     // Lingkaran membesar dan teks mendekat secara otomatis
     warpTl.to(".ring", { translateZ: "0px", scale: 2.5, opacity: 0, stagger: 0.15, duration: 1.2, ease: "power2.out" })
           .to(".warp-text", { translateZ: "0px", opacity: 1, duration: 1, ease: "power3.out" }, "-=1")
           
-          // Penghitung Angka berjalan
+          // Penghitung Angka berjalan (Target val disetel ke totalMonths)
           .to(counterObj, {
-            val: 50, duration: 1.5, ease: "power1.out",
+            val: totalMonths, 
+            duration: 1.5, 
+            ease: "power1.out",
             onUpdate: () => {
-              counterEl.innerText = `Rp ${Math.floor(counterObj.val)} Miliyar`;
+              counterEl.innerText = `${Math.floor(counterObj.val)} months`;
             },
             onComplete: () => {
-              counterEl.innerText = `Rp 50 Miliyar`;
-              fireConfetti(); // Kembang api pecah saat tepat angka 50
+              counterEl.innerText = `${totalMonths} months`;
+              fireConfetti(); // Kembang api pecah saat tepat di angka target
             }
           }, "-=0.5");
 
