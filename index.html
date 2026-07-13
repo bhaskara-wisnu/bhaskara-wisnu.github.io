@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bhaskara's Journey</title>
+  <title>Entrepreneur Portfolio</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -142,7 +142,7 @@
       display: flex; align-items: center; justify-content: center; overflow: hidden;
     }
     
-    /* UPDATE: Shimmer lambat bergerak (80%), delay sangat singkat (20% akhir) */
+    /* Shimmer Effect */
     .shimmer {
       position: absolute; top: 0; left: -150%; width: 100%; height: 100%;
       background: linear-gradient(110deg, 
@@ -173,7 +173,7 @@
     .stat-2 { bottom: -20px; right: -30px; animation: float 5s ease-in-out infinite reverse; }
     @keyframes float { 50% { transform: translateY(-15px); } }
 
-    /* MARQUEE / RUNNING TEXT */
+    /* MARQUEE / RUNNING TEXT (UPDATE: Teks Seamless) */
     .marquee-section {
       width: 100%;
       background: rgba(10, 8, 16, 0.6);
@@ -197,7 +197,7 @@
       display: flex;
       align-items: center;
       gap: 40px;
-      padding-right: 40px;
+      padding-right: 40px; /* Padding ini krusial agar loop menyambung sempurna tanpa celah */
     }
     .marquee-group span {
       font-size: 1.1rem;
@@ -219,9 +219,9 @@
       100% { transform: translateX(-50%); }
     }
 
-    /* 50M SECTION - DIVE WARP 3D */
-    .warp-section { height: 130vh; position: relative; background: #000; overflow: hidden; }
-    .warp-container { height: 100vh; position: sticky; top: 0; display: flex; align-items: center; justify-content: center; perspective: 1000px;}
+    /* 50M SECTION - DIVE WARP 3D (UPDATE: Tinggi dibuat 100vh tanpa scroll berlebih) */
+    .warp-section { height: 100vh; position: relative; background: #000; overflow: hidden; }
+    .warp-container { height: 100vh; display: flex; align-items: center; justify-content: center; perspective: 1000px;}
     .tunnel { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100vw; height: 100vh; transform-style: preserve-3d; }
     .ring { position: absolute; top: 50%; left: 50%; width: 100vmin; height: 100vmin; border: 2px solid rgba(255, 77, 138, 0.2); border-radius: 50%; transform: translate(-50%, -50%); }
     .warp-text { text-align: center; transform: translateZ(-3000px); opacity: 0; z-index: 10; }
@@ -374,14 +374,12 @@
 
   <header class="glass" id="header">
     <div class="logo-container">
-      <div class="logo-box">BW</div>
-      Bhaskara Wisnu.
+      <div class="logo-box">CN</div>
+      Charis N.
     </div>
     <nav>
       <ul>
         <li><a href="#journey">Journey</a></li>
-        <li><a href="http://bhaskara-wisnu.github.io/IHSG-flow.html">IHSG Flow</a></li>
-        <li><a href="http://bhaskara-wisnu.github.io/jam-kalender.html">Kalender</a></li>
         <li><a href="#about">About</a></li>
         <li><a href="#contact">Contact</a></li>
       </ul>
@@ -395,9 +393,9 @@
   <section class="hero" id="home">
     <div class="hero-content">
       <div class="hero-text reveal">
-        <span class="badge">Pemalang-Jawa Tengah · Kebumen-Jawa Tengah · Tabalong-Kalimantan Selatan</span>
-        <h1><span class="gradient-text">Ad Astra</span><br>Per Aspera.</h1>
-        <p>"Menuju Bintang Melalui Jerih Payah". An entrepreneur's portfolio exploring the intersection of bold ideas, calculated risks, and aesthetic precision.</p>
+        <span class="badge">Street-tested · Battle-proven</span>
+        <h1>Building <br><span class="gradient-text">Empires</span><br>from Zero.</h1>
+        <p>An entrepreneur's portfolio exploring the intersection of bold ideas, calculated risks, and aesthetic precision.</p>
         <button class="btn-gradient" onclick="haptic()">Follow my journey</button>
       </div>
       <div class="card-wrapper reveal">
@@ -406,8 +404,8 @@
             <div class="shimmer"></div>
           </div>
           <div class="card-face card-back">
-            <div class="stat-card stat-1">6+ Years<br>Hustle</div>
-            <div class="stat-card stat-2">1 Exits<br>Acquired</div>
+            <div class="stat-card stat-1">10+ Years<br>Hustle</div>
+            <div class="stat-card stat-2">3 Exits<br>Acquired</div>
           </div>
         </div>
       </div>
@@ -418,15 +416,13 @@
     <div class="marquee-content">
       <div class="marquee-group">
         <span>Automation Control</span> <span class="dot"></span>
-        <span>Power System</span> <span class="dot"></span>
-        <span>IT Integration</span> <span class="dot"></span>
-        <span>2D 3D Design</span> <span class="dot"></span>
-        <span>Electrical Drawing</span> <span class="dot"></span>
-        <span>Programming</span> <span class="dot"></span>
-        <span>Microcontroller</span> <span class="dot"></span>
+        <span>Pengawas Operasional Pertama MINERBA</span> <span class="dot"></span>
+        <span>SKTTK ESDM</span> <span class="dot"></span>
+        <span>Teknisi PAA</span> <span class="dot"></span>
+        <span>Data Analyst</span> <span class="dot"></span>
       </div>
       <div class="marquee-group">
-        <span>Ahli K3 Listrik</span> <span class="dot"></span>
+        <span>Automation Control</span> <span class="dot"></span>
         <span>Pengawas Operasional Pertama MINERBA</span> <span class="dot"></span>
         <span>SKTTK ESDM</span> <span class="dot"></span>
         <span>Teknisi PAA</span> <span class="dot"></span>
@@ -625,52 +621,32 @@
       });
     }
 
-    // 4. 50M Dive Warp 3D Animation & Counter
-    let countTween;
+    // 4. 50M Dive Warp 3D Animation & Counter (UPDATE: Auto-play tanpa scroll scrub)
     let counterObj = { val: 0 };
     const counterEl = document.getElementById("counter");
 
     let warpTl = gsap.timeline({
       scrollTrigger: {
         trigger: ".warp-section",
-        start: "top top",
-        end: "+=100%", // Jarak scroll diperpanjang
-        scrub: true,
-        pin: true,
-        onUpdate: (self) => {
-          // Ketika teks sudah mendekat dan diam (progress > 0.6), mulai jalankan counter
-          if (self.progress >= 0.6 && !counterEl.classList.contains("fired")) {
-            counterEl.classList.add("fired");
-            counterObj.val = 0;
-            counterEl.innerText = "Rp 0 Miliyar"; // Pastikan mulai dari 0
-            
-            if (countTween) countTween.kill();
-            
-            countTween = gsap.to(counterObj, {
-              val: 50, duration: 1.5, ease: "power2.out",
-              onUpdate: () => {
-                counterEl.innerText = `Rp ${Math.floor(counterObj.val)} Miliyar`;
-              },
-              onComplete: () => {
-                counterEl.innerText = `Rp 50 Miliyar`;
-                fireConfetti(); // Langsung menembakkan confetti ketika genap menyentuh angka 50
-              }
-            });
-          } 
-          // Reset kembali menjadi Rp 0 jika user terlanjur scroll balik ke atas
-          else if (self.progress < 0.5 && counterEl.classList.contains("fired")) {
-            counterEl.classList.remove("fired");
-            if (countTween) countTween.kill();
-            counterEl.innerText = "Rp 0 Miliyar"; 
-          }
-        }
+        start: "top 40%", // Animasi mulai otomatis ketika bagian ini masuk sedikit ke tengah layar
       }
     });
 
-    // Animasi lorong (selesai di 0.5 durasi timeline), sisanya adalah waktu diam agar user fokus pada counter
-    warpTl.to(".ring", { translateZ: "0px", scale: 2, opacity: 0, stagger: 0.05, duration: 0.5 })
-          .to(".warp-text", { translateZ: "0px", opacity: 1, duration: 0.5 }, "-=0.5")
-          .to({}, {duration: 0.5}); // Padding
+    // Lingkaran membesar dan teks mendekat secara otomatis
+    warpTl.to(".ring", { translateZ: "0px", scale: 2.5, opacity: 0, stagger: 0.15, duration: 1.2, ease: "power2.out" })
+          .to(".warp-text", { translateZ: "0px", opacity: 1, duration: 1, ease: "power3.out" }, "-=1")
+          
+          // Penghitung Angka berjalan
+          .to(counterObj, {
+            val: 50, duration: 1.5, ease: "power1.out",
+            onUpdate: () => {
+              counterEl.innerText = `Rp ${Math.floor(counterObj.val)} Miliyar`;
+            },
+            onComplete: () => {
+              counterEl.innerText = `Rp 50 Miliyar`;
+              fireConfetti(); // Kembang api pecah saat tepat angka 50
+            }
+          }, "-=0.5");
 
     // 5. Theme Switcher (Gallery)
     ScrollTrigger.create({
